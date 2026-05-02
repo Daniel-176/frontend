@@ -27,12 +27,9 @@ if (location.host === "multiplayerpiano.net") {
 
 $(function () {
   translation.start();
+  console.log("%cMPP Developer Console", "color: #0066ff; font-size:20px;");
   console.log(
-    "%cWelcome to MPP's developer console!",
-    "color:blue; font-size:20px;",
-  );
-  console.log(
-    "%cCheck out the source code: https://github.com/mppnet/frontend/tree/main/client\nGuide for coders and bot developers: https://docs.google.com/document/d/1OrxwdLD1l1TE8iau6ToETVmnLuLXyGBhA0VfAY1Lf14/edit?usp=sharing",
+    "%cCheck out the client source : https://github.com/mppnet/frontend/tree/main/client\nGuide for developers: https://docs.google.com/document/d/1OrxwdLD1l1TE8iau6ToETVmnLuLXyGBhA0VfAY1Lf14/edit?usp=sharing",
     "color:gray; font-size:12px;",
   );
 
@@ -1311,8 +1308,6 @@ $(function () {
     (() => {
       if (!localStorage.age) return;
       const year = parseInt(localStorage.dob);
-      console.log(year);
-      console.log(isNaN(year));
       if (!isNaN(year)) $("#age input[name=year]").val(year);
     })();
 
@@ -5519,16 +5514,32 @@ $(function () {
 
     const languages = document.getElementById("languages");
 
-    translationIdsWithNames.forEach((z) => {
-      const option = document.createElement("option");
-      option.value = z.code;
-      option.innerText = z.native;
-      if (z.code == i18nextify.i18next.language.split("-")[0]) {
-        option.selected = true;
-      }
-      option.setAttribute("translated", "");
-      languages.appendChild(option);
-    });
+    function createTranslationOptions() {
+      translationIdsWithNames.forEach((z) => {
+        const option = document.createElement("option");
+        option.value = z.code;
+        option.innerText = z.native;
+        if (z.code == i18nextify.i18next.language.split("-")[0]) {
+          option.selected = true;
+        }
+        option.setAttribute("translated", "");
+        languages.appendChild(option);
+      });
+    }
+
+    if (i18nextify.i18next.isInitialized) {
+      console.debug(
+        "already initialized language:",
+        i18nextify.i18next.language,
+      );
+      createTranslationOptions();
+    } else {
+      console.debug("no language");
+      i18nextify.i18next.on("initialized", (options) => {
+        console.debug("initialized:", i18nextify.i18next.language, options);
+        createTranslationOptions();
+      });
+    }
 
     document.getElementById("lang-btn").addEventListener("click", () => {
       openModal("#language");

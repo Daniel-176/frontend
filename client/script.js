@@ -5555,10 +5555,7 @@ $(function () {
         closeModal();
       });
   })();
-
-  if (!gAf) {
-    gClient.start();
-  }
+  gClient.start();
 });
 
 // misc

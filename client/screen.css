@@ -45,11 +45,9 @@ body {
 }
 
 body {
-  background: radial-gradient(
-    ellipse at center,
-    var(--color) 0%,
-    var(--color2) 100%
-  );
+  background: radial-gradient(ellipse at center,
+      var(--color) 0%,
+      var(--color2) 100%);
   transition:
     --color 1000ms,
     --color2 1000ms;
@@ -185,16 +183,14 @@ input[type="range"] {
   border-radius: 1px;
   position: relative;
 
-  background-image: -webkit-gradient(
-    linear,
-    left top,
-    right top,
-    color-stop(0, hsla(254, 100%, 25%, 0.8)),
-    color-stop(0.08, hsla(254, 100%, 13%, 0.8)),
-    color-stop(0.5, hsl(200, 80%, 0%)),
-    color-stop(0.92, hsl(200, 80%, 15%)),
-    color-stop(1, hsl(200, 80%, 45%))
-  );
+  background-image: -webkit-gradient(linear,
+      left top,
+      right top,
+      color-stop(0, hsla(254, 100%, 25%, 0.8)),
+      color-stop(0.08, hsla(254, 100%, 13%, 0.8)),
+      color-stop(0.5, hsl(200, 80%, 0%)),
+      color-stop(0.92, hsl(200, 80%, 15%)),
+      color-stop(1, hsl(200, 80%, 45%)));
 
   -webkit-background-clip: padding-box;
   border: 0;
@@ -212,19 +208,17 @@ input[type="range"]::-webkit-slider-thumb {
   height: 20px;
   border-radius: 1px / 2px;
 
-  background-image: -webkit-gradient(
-    linear,
-    left top,
-    right top,
-    color-stop(0, hsl(0, 0%, 15%)),
-    color-stop(0.16, hsl(0, 0%, 22%)),
-    color-stop(0.18, hsl(0, 0%, 30%)),
-    color-stop(0.2, hsl(0, 0%, 26%)),
-    color-stop(0.8, hsl(0, 0%, 26%)),
-    color-stop(0.82, hsl(0, 0%, 30%)),
-    color-stop(0.84, hsl(0, 0%, 22%)),
-    color-stop(1, hsl(0, 0%, 15%))
-  );
+  background-image: -webkit-gradient(linear,
+      left top,
+      right top,
+      color-stop(0, hsl(0, 0%, 15%)),
+      color-stop(0.16, hsl(0, 0%, 22%)),
+      color-stop(0.18, hsl(0, 0%, 30%)),
+      color-stop(0.2, hsl(0, 0%, 26%)),
+      color-stop(0.8, hsl(0, 0%, 26%)),
+      color-stop(0.82, hsl(0, 0%, 30%)),
+      color-stop(0.84, hsl(0, 0%, 22%)),
+      color-stop(1, hsl(0, 0%, 15%)));
 
   -webkit-box-shadow:
     inset hsla(0, 0%, 100%, 0.15) 0 1px 0px,
@@ -234,28 +228,23 @@ input[type="range"]::-webkit-slider-thumb {
     rgba(0, 0, 0, 0.5) 0 8px 5px;
 
   -webkit-transform: translateY(-3px);
-  -webkit-box-reflect: below
-    0px -webkit-gradient(
-      linear,
+  -webkit-box-reflect: below 0px -webkit-gradient(linear,
       left top,
       left bottom,
       from(transparent),
       color-stop(0.6, transparent),
-      to(rgba(255, 255, 255, 0.15))
-    );
+      to(rgba(255, 255, 255, 0.15)));
 }
 
 input[type="range"]:hover {
-  background-image: -webkit-gradient(
-    linear,
-    left top,
-    right top,
-    color-stop(0, hsla(284, 100%, 25%, 0.8)),
-    color-stop(0.08, hsla(284, 100%, 13%, 0.8)),
-    color-stop(0.5, hsl(200, 80%, 0%)),
-    color-stop(0.92, hsl(200, 80%, 15%)),
-    color-stop(1, hsl(200, 80%, 45%))
-  );
+  background-image: -webkit-gradient(linear,
+      left top,
+      right top,
+      color-stop(0, hsla(284, 100%, 25%, 0.8)),
+      color-stop(0.08, hsla(284, 100%, 13%, 0.8)),
+      color-stop(0.5, hsl(200, 80%, 0%)),
+      color-stop(0.92, hsl(200, 80%, 15%)),
+      color-stop(1, hsl(200, 80%, 45%)));
 
   -webkit-box-shadow:
     inset #000 1px 1px 1px,
@@ -532,17 +521,15 @@ input[type="range"]:hover {
 }
 
 #room .info.cheez {
-  background-image: repeating-linear-gradient(
-    to right,
-    violet 0%,
-    indigo 14%,
-    blue 28%,
-    green 42%,
-    yellow 56%,
-    orange 70%,
-    red 84%,
-    violet 100%
-  );
+  background-image: repeating-linear-gradient(to right,
+      violet 0%,
+      indigo 14%,
+      blue 28%,
+      green 42%,
+      yellow 56%,
+      orange 70%,
+      red 84%,
+      violet 100%);
 
   background-clip: text;
   -webkit-background-clip: text;
@@ -600,7 +587,7 @@ input[type="range"]:hover {
   max-height: 600px;
 }
 
-#room .more > div {
+#room .more>div {
   margin: 0;
   padding: 3px 6px 0 6px;
   width: 100%;
@@ -1037,7 +1024,7 @@ input[type="range"]:hover {
   margin-top: -200px;
 }
 
-#account > .ugly-button {
+#account>.ugly-button {
   width: min-content;
 }
 
@@ -1519,13 +1506,6 @@ input[type="range"]:hover {
 .mpp-rules-button {
   position: fixed;
   right: 6px;
-  top: 32px;
-  z-index: 200;
-}
-
-.mpp-tos-button {
-  position: fixed;
-  right: 48px;
   top: 32px;
   z-index: 200;
 }

@@ -1834,8 +1834,8 @@ $(function () {
     .split(",")
     .filter((v) => v);
   var gHideAllCursors = localStorage.hideAllCursors == "true";
-  var gHidePiano = localStorage.hidePiano == "true";
-  var gHideChat = localStorage.hideChat == "true";
+  var gHidePianoLocal = localStorage.hidePiano == "true";
+  var gHideChatLocal = localStorage.hideChat == "true";
   var gNoPreventDefault = localStorage.noPreventDefault == "true";
   var gHideBotUsers = localStorage.hideBotUsers == "true";
   var gCancelDMs = localStorage.cancelDMs == "true";
@@ -1877,14 +1877,14 @@ $(function () {
   }
 
   // Hide piano attribute
-  if (gHidePiano) {
+  if (gHidePianoLocal) {
     $("#piano").hide();
   } else {
     $("#piano").show();
   }
 
   // Hide chat attribute
-  if (gHideChat) {
+  if (gHideChatLocal) {
     $("#chat").hide();
   } else {
     $("#chat").show();
@@ -4822,14 +4822,14 @@ $(function () {
             createSetting(
               "hide-chat",
               "Hide chat",
-              gHideChat,
+              gHideChatLocal,
               true,
               html,
               () => {
-                gHideChat = !gHideChat;
-                localStorage.hideChat = gHideChat;
+                gHideChatLocal = !gHideChatLocal;
+                localStorage.hideChat = gHideChatLocal;
 
-                if (gHideChat) {
+                if (gHideChatLocal) {
                   $("#chat").hide();
                 } else {
                   $("#chat").show();
@@ -4913,14 +4913,14 @@ $(function () {
             createSetting(
               "hide-piano",
               "Hide piano",
-              gHidePiano,
+              gHidePianoLocal,
               true,
               html,
               () => {
-                gHidePiano = !gHidePiano;
-                localStorage.hidePiano = gHidePiano;
+                gHidePianoLocal = !gHidePianoLocal;
+                localStorage.hidePiano = gHidePianoLocal;
 
-                if (gHidePiano) {
+                if (gHidePianoLocal) {
                   $("#piano").hide();
                 } else {
                   $("#piano").show();

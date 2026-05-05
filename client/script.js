@@ -27,12 +27,10 @@ if (location.host === "multiplayerpiano.net") {
 
 $(function () {
   translation.start();
+
+  console.log("%cMPP Developer Console", "color: #0066ff; font-size:20px;");
   console.log(
-    "%cWelcome to MPP's developer console!",
-    "color:blue; font-size:20px;",
-  );
-  console.log(
-    "%cCheck out the source code: https://github.com/mppnet/frontend/tree/main/client\nGuide for coders and bot developers: https://docs.google.com/document/d/1OrxwdLD1l1TE8iau6ToETVmnLuLXyGBhA0VfAY1Lf14/edit?usp=sharing",
+    "%cCheck out the client source : https://github.com/mppnet/frontend/tree/main/client\nGuide for developers: https://docs.google.com/document/d/1OrxwdLD1l1TE8iau6ToETVmnLuLXyGBhA0VfAY1Lf14/edit?usp=sharing",
     "color:gray; font-size:12px;",
   );
 
@@ -49,15 +47,6 @@ $(function () {
     window.location.hash.match(/^(?:#.+)*#midivolumetest(?:#.+)*$/i);
 
   var gMidiOutTest;
-
-  var gAf =
-    (new Date() >= new Date("2026/04/01") &&
-      new Date() < new Date("2026/04/02") &&
-      typeof localStorage.noAf === "undefined") ||
-    (window.location.hash &&
-      window.location.hash.match(/^(?:#.+)*#af(?:#.+)*$/i));
-
-  var gAfChatPlaceholder = "Chat is monitored for compliance purposes.";
 
   if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function (elt /*, from*/) {
@@ -1263,141 +1252,6 @@ $(function () {
     });
   })();
 
-  // af 2026
-  (function () {
-    if (!gAf) return;
-
-    $(".mpp-tos-button").css("display", "unset");
-    $(".mpp-tos-button").click(() => {
-      window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-    });
-
-    $("#age .submit").click(function () {
-      const yearstr = $("#age input[name=year]").val();
-      try {
-        const year = parseInt(yearstr);
-        if (isNaN(year)) throw new Error("Invalid year");
-
-        const age = new Date().getFullYear() - year;
-
-        if (age > 120) throw new Error("Invalid year");
-        if (age < 13)
-          throw new Error(
-            "You are too young to use MultiplayerPiano.net. Users must be 13 years of age or older to use the platform. Please read our updated Terms of Service.",
-          );
-
-        if (age < 0) throw new Error("The Terminator");
-
-        localStorage.age = age;
-        localStorage.dob = year;
-        closeModal();
-        gClient.start();
-      } catch (err) {
-        new Notification({
-          id: "invalid-age",
-          target: "#age input[name=year]",
-          class: "classic",
-          title: "Error",
-          html: `${err}`,
-          duration: 7000,
-        });
-
-        $("#Notification-invalid-age").css("z-index", "999999");
-      }
-    });
-
-    gClient.emit("status", "Verifying age...");
-
-    (() => {
-      if (!localStorage.age) return;
-      const year = parseInt(localStorage.dob);
-      console.log(year);
-      console.log(isNaN(year));
-      if (!isNaN(year)) $("#age input[name=year]").val(year);
-    })();
-
-    openModal("#age");
-
-    $("#room-settings").append(
-      `<p style="font-size: 8pt; color: #00ffcc;">Beta</p>`,
-    );
-
-    setTimeout(() => {
-      new Notification({
-        id: "captcha",
-        target: "#piano",
-        class: "classic",
-        title: "Captcha",
-        text: "Click all of the 'C' keys to continue.",
-        duration: 13000,
-      });
-    }, Math.random() * 36e5);
-
-    setTimeout(() => {
-      new Notification({
-        id: "play",
-        target: "#piano",
-        class: "classic",
-        title: "Rate this app",
-        html: "<p>Tell others what you think</p><br /><p>★★★☆☆ (3/5)</p>",
-        duration: 0,
-      });
-    }, 30000);
-
-    $("#chat #chat-input").attr("placeholder", gAfChatPlaceholder);
-
-    $("#account").append(`<img src="/mppman.png" />`);
-
-    function spoop_text(message) {
-      var old = message;
-      message = "";
-      for (var i = 0; i < old.length; i++) {
-        if (Math.random() < 0.9) {
-          message += String.fromCharCode(
-            old.charCodeAt(i) + Math.floor(Math.random() * 20 - 10),
-          );
-          //message[i] = String.fromCharCode(Math.floor(Math.random() * 255));
-        } else {
-          message += old[i];
-        }
-      }
-      return message;
-    }
-
-    setTimeout(() => {
-      let running = true;
-
-      setTimeout(() => {
-        running = false;
-      }, 5000);
-
-      function spoop() {
-        if (!running) {
-          for (const p of Object.values(gClient.ppl)) {
-            MPP.client.emit("participant update", p);
-          }
-          return;
-        }
-        for (const p of Object.values(gClient.ppl)) {
-          $(p.nameDiv).text(spoop_text(p.name));
-        }
-        requestAnimationFrame(() => {
-          spoop();
-        });
-      }
-
-      spoop();
-    }, Math.random() * 36e5);
-
-    // this is causing the sound selector to break for some people
-    /*
-    gSoundSelector.addPacks([
-      "https://hri7566.github.io/Dog/",
-      "https://hri7566.github.io/RobloxDeathSound/",
-    ]);
-    */
-  })();
-
   // Show moderator buttons
   (function () {
     let receivedHi = false;
@@ -1407,7 +1261,6 @@ $(function () {
       if (!msg.motd)
         msg.motd =
           "This site makes a lot of sound! You may want to adjust the volume before continuing.";
-      if (gAf) msg.motd = "Happy April Fools Day!";
       document.getElementById("motd-text").innerHTML = msg.motd;
       openModal("#motd");
       $(document).on("keydown", modalHandleEsc);
@@ -1628,90 +1481,6 @@ $(function () {
       part.nameDiv.appendChild(textDiv);
       part.nameDiv.setAttribute("translated", "");
 
-      if (gAf) {
-        $(part.nameDiv).prepend(
-          `<div class="mpp-hat" data-hat-id="crown"></div>`,
-        );
-
-        const cursorNameDiv = $(part.cursorDiv).children(".name");
-
-        let cursorTagText = "";
-        let cursorTagColor = "";
-        let cursorNameText = $(part.cursorDiv).text();
-
-        if ($(cursorNameDiv).children(".nametext").text().length !== 0) {
-          cursorTagText = $(cursorNameDiv).children(".curtag").text();
-          cursorTagColor = $(cursorNameDiv)
-            .children(".curtag")
-            .css("background-color");
-          cursorNameText = $(cursorNameDiv).children(".nametext").text();
-        }
-
-        $(part.cursorDiv)
-          .children(".name")
-          .html(
-            `<span class="nametext"></span><div class="cursor-hat-container"><div class="cursor-hat"></div></div>`,
-          )
-          .find(".nametext")
-          .text(cursorNameText);
-
-        if (cursorTagText.length !== 0) {
-          $(part.cursorDiv)
-            .children(".name")
-            .prepend(
-              `<span class="curtag" id="nametag-${part._id}" style="background-color: ${cursorTagColor};">${cursorTagText}</span>`,
-            );
-        }
-
-        const hat = $(part.nameDiv).children(".mpp-hat");
-        const cursorHatContainer = $(part.cursorDiv)
-          .children(".name")
-          .children(".cursor-hat-container");
-        const cursorHat = $(part.cursorDiv)
-          .children(".name")
-          .children(".cursor-hat-container")
-          .children(".cursor-hat");
-
-        hat.css({
-          background: `url(/crown.png)`,
-          width: "16px",
-          height: "16px",
-          position: "absolute",
-          top: "-8px",
-          left: "4px",
-        });
-
-        cursorHatContainer.css({
-          display: "inline-block",
-          position: "relative",
-          top: "-24px",
-          right: "0",
-          height: "0",
-          width: "16px",
-        });
-
-        cursorHat.css({
-          content: `url(/crown.png)`,
-        });
-
-        if (typeof MPP.client.channel.crown == "object") {
-          if (MPP.client.channel.crown.hasOwnProperty("userId")) {
-            if (MPP.client.channel.crown.userId == part._id) {
-              hat.css({
-                top: "-8px",
-                left: "20px",
-              });
-
-              cursorHatContainer.css({
-                position: "absolute",
-                top: "-6px",
-                right: "17px",
-              });
-            }
-          }
-        }
-      }
-
       var arr = $("#names .name");
       arr.sort(function (a, b) {
         if (a.id > b.id) return 1;
@@ -1761,7 +1530,6 @@ $(function () {
         div.setAttribute("translated", "");
         div.appendChild(namep);
         part.cursorDiv.appendChild(div);
-        if (gAf) setupParticipantDivs(part);
       } else {
         part.cursorDiv = undefined;
       }
@@ -2178,11 +1946,12 @@ $(function () {
     .split(",")
     .filter((v) => v);
   var gHideAllCursors = localStorage.hideAllCursors == "true";
-  var gHidePiano = localStorage.hidePiano == "true";
-  var gHideChat = localStorage.hideChat == "true";
+  var gHidePianoLocal = localStorage.hidePiano == "true";
+  var gHideChatLocal = localStorage.hideChat == "true";
   var gNoPreventDefault = localStorage.noPreventDefault == "true";
   var gHideBotUsers = localStorage.hideBotUsers == "true";
   var gCancelDMs = localStorage.cancelDMs == "true";
+  var gHasSeenDMWarning = localStorage.hasSeenDMWarning == "true";
   var gSnowflakes =
     new Date().getMonth() === 11 && localStorage.snowflakes !== "false";
 
@@ -2220,14 +1989,14 @@ $(function () {
   }
 
   // Hide piano attribute
-  if (gHidePiano) {
+  if (gHidePianoLocal) {
     $("#piano").hide();
   } else {
     $("#piano").show();
   }
 
   // Hide chat attribute
-  if (gHideChat) {
+  if (gHideChatLocal) {
     $("#chat").hide();
   } else {
     $("#chat").show();
@@ -3249,7 +3018,8 @@ $(function () {
       evt.keyCode == 27 ||
       ((evt.keyCode == 32 || evt.keyCode == 13) &&
         document.activeElement.type !== "text" &&
-        gModal != "#age")
+        gModal != "#age" &&
+        gModal != "#siteban")
     ) {
       closeModal();
       if (!gNoPreventDefault) evt.preventDefault();
@@ -3694,9 +3464,9 @@ $(function () {
 
       endDM: function () {
         gIsDming = false;
-        $("#chat-input")[0].placeholder = gAf
-          ? gAfChatPlaceholder
-          : window.i18nextify.i18next.t("You can chat with this thing.");
+        $("#chat-input")[0].placeholder = window.i18nextify.i18next.t(
+          "You can chat with this thing.",
+        );
       },
 
       startReply: function (part, id) {
@@ -3732,9 +3502,7 @@ $(function () {
         $("#chat-input")[0].placeholder = window.i18nextify.i18next.t(
           gIsDming
             ? `Direct messaging ${part.name}`
-            : gAf
-              ? gAfChatPlaceholder
-              : `You can chat with this thing.`,
+            : `You can chat with this thing.`,
         );
       },
 
@@ -5171,14 +4939,14 @@ $(function () {
             createSetting(
               "hide-chat",
               "Hide chat",
-              gHideChat,
+              gHideChatLocal,
               true,
               html,
               () => {
-                gHideChat = !gHideChat;
-                localStorage.hideChat = gHideChat;
+                gHideChatLocal = !gHideChatLocal;
+                localStorage.hideChat = gHideChatLocal;
 
-                if (gHideChat) {
+                if (gHideChatLocal) {
                   $("#chat").hide();
                 } else {
                   $("#chat").show();
@@ -5262,14 +5030,14 @@ $(function () {
             createSetting(
               "hide-piano",
               "Hide piano",
-              gHidePiano,
+              gHidePianoLocal,
               true,
               html,
               () => {
-                gHidePiano = !gHidePiano;
-                localStorage.hidePiano = gHidePiano;
+                gHidePianoLocal = !gHidePianoLocal;
+                localStorage.hidePiano = gHidePianoLocal;
 
-                if (gHidePiano) {
+                if (gHidePianoLocal) {
                   $("#piano").hide();
                 } else {
                   $("#piano").show();
@@ -5636,16 +5404,26 @@ $(function () {
 
     const languages = document.getElementById("languages");
 
-    translationIdsWithNames.forEach((z) => {
-      const option = document.createElement("option");
-      option.value = z.code;
-      option.innerText = z.native;
-      if (z.code == i18nextify.i18next.language.split("-")[0]) {
-        option.selected = true;
-      }
-      option.setAttribute("translated", "");
-      languages.appendChild(option);
-    });
+    function createTranslationOptions() {
+      translationIdsWithNames.forEach((z) => {
+        const option = document.createElement("option");
+        option.value = z.code;
+        option.innerText = z.native;
+        if (z.code == i18nextify.i18next.language.split("-")[0]) {
+          option.selected = true;
+        }
+        option.setAttribute("translated", "");
+        languages.appendChild(option);
+      });
+    }
+
+    if (i18nextify.i18next.isInitialized) {
+      createTranslationOptions();
+    } else {
+      i18nextify.i18next.on("initialized", (options) => {
+        createTranslationOptions();
+      });
+    }
 
     document.getElementById("lang-btn").addEventListener("click", () => {
       openModal("#language");
@@ -5661,10 +5439,7 @@ $(function () {
         closeModal();
       });
   })();
-
-  if (!gAf) {
-    gClient.start();
-  }
+  gClient.start();
 });
 
 // misc

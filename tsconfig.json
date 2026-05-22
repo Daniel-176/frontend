@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
-    "rootDir": "./src",
+    "rootDir": "./client/src",
     "baseUrl": "."
   },
   "include": ["client/src/**/*.ts"],

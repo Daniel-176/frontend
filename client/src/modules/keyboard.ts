@@ -346,8 +346,8 @@ export function initKeyboard(): void {
     document.body.appendChild(menu);
     const pos = part.nameDiv!.getBoundingClientRect();
     Object.assign(menu.style, {
-      top: pos.top + part.nameDiv!.offsetHeight + 15 + 'px',
-      left: pos.left + 6 + 'px',
+      top: pos.top + part.nameDiv!.offsetHeight + 'px',
+      left: pos.left + 'px',
       background: part.color || 'black',
     });
     const menuClickHandler = (evt: Event) => {

@@ -16,7 +16,12 @@ export class Renderer {
   }
 
   resize(width?: number, height?: number): void {
-    if (width === undefined) width = this.piano.rootElement.offsetWidth;
+    if (width === undefined) {
+      const style = getComputedStyle(this.piano.rootElement);
+      width = this.piano.rootElement.clientWidth
+        - parseFloat(style.paddingLeft)
+        - parseFloat(style.paddingRight);
+    }
     if (height === undefined) height = Math.floor(width! * 0.2);
     this.piano.rootElement.style.height = height + 'px';
     this.piano.rootElement.style.marginTop = Math.floor(window.innerHeight / 2 - height / 2) + 'px';

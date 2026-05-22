@@ -31,22 +31,8 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy via Git
+      - name: Deploy via rsync
         run: |
           BRANCH=${GITHUB_REF##*/}
-          if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "dev" ]; then
-            echo "Branch $BRANCH not configured for deployment. Exiting."
-            exit 0
-          fi
-
           DEPLOY_PATH=$([[ "$BRANCH" == "main" ]] && echo "${{ secrets.DEPLOY_PATH }}" || echo "${{ secrets.DEPLOY_PATH_DEV }}")
-
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-          "mkdir -p \"$DEPLOY_PATH\"; \
-          if [ -d \"$DEPLOY_PATH/.git\" ]; then \
-            echo 'Pulling latest changes...'; \
-            cd \"$DEPLOY_PATH\" && git fetch --all && git reset --hard origin/$BRANCH; \
-          else \
-            echo 'Cloning repo...'; \
-            git clone -b $BRANCH https://github.com/mppnet/frontend.git \"$DEPLOY_PATH\"; \
-          fi"
+          rsync -az --delete --exclude='node_modules' ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:"$DEPLOY_PATH"

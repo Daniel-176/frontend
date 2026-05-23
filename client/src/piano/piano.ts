@@ -1,5 +1,6 @@
 import { CanvasRenderer } from './renderer';
-import { AudioEngineWeb } from './audio';
+import * as audio from './audio';
+import * as audioNew from './audio-new';
 import { settings } from '../modules/settings/settings';
 import { state } from '../util/state';
 
@@ -28,7 +29,7 @@ export class Piano {
   rootElement: HTMLElement;
   keys: Record<string, PianoKey> = {};
   renderer: CanvasRenderer;
-  audio: AudioEngineWeb;
+  audio: audio.AudioEngineWeb | audioNew.AudioEngineWeb;
 
   constructor(rootElement: HTMLElement) {
     this.rootElement = rootElement;
@@ -67,7 +68,11 @@ export class Piano {
     window.addEventListener('resize', () => { this.renderer.resize(); });
 
     window.AudioContext = window.AudioContext || (window as any).webkitAudioContext || undefined;
-    this.audio = new AudioEngineWeb().init();
+    if (settings.newAudioEngine) {
+      this.audio = new audioNew.AudioEngineWeb().init();
+    } else {
+      this.audio = new audio.AudioEngineWeb().init();
+    }
   }
 
   play(note: string, vol: number, participant: { id: string; color: string; nameDiv?: HTMLElement }, delay_ms: number, lyric?: string): void {

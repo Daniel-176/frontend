@@ -24,6 +24,7 @@ export class Settings {
   testMode: boolean;
   seeOwnCursor: boolean;
   midiVolumeTest: boolean;
+  newAudioEngine: boolean;
 
   constructor() {
     const hash = window.location.hash || '';
@@ -45,6 +46,7 @@ export class Settings {
     this.cursorHides = (localStorage.cursorHides || '').split(',').filter(Boolean);
     this.hideAllCursors = localStorage.hideAllCursors === 'true';
     this.hidePianoLocal = localStorage.hidePiano === 'true';
+    this.newAudioEngine = localStorage.newAudioEngine === 'true';
     this.hideChatLocal = localStorage.hideChat === 'true';
     this.noPreventDefault = localStorage.noPreventDefault === 'true';
     this.hideBotUsers = localStorage.hideBotUsers === 'true';

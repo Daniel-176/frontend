@@ -1,15 +1,17 @@
 import type { Client } from '../libs/Client';
 import type { NoteQuota } from '../libs/NoteQuota';
 import type { CanvasRenderer } from '../piano/renderer';
-import type { AudioEngineWeb } from '../piano/audio';
 import type { PianoKey } from '../piano/piano';
-import { SoundSelector } from 'src/libs/SoundSelector';
+import { SoundSelector } from '../libs/SoundSelector';
+
+import * as audio from '../piano/audio';
+import * as audioNew from '../piano/audio-new';
 
 export interface Piano {
   rootElement: HTMLElement;
   keys: Record<string, PianoKey>;
   renderer: CanvasRenderer;
-  audio: AudioEngineWeb;
+  audio: audio.AudioEngineWeb | audioNew.AudioEngineWeb;
   play(note: string, vol: number, participant: { id: string | undefined; color: string; nameDiv?: HTMLElement }, delay_ms: number, lyric?: string): void;
   stop(note: string, participant: { id: string }, delay_ms: number): void;
 }

@@ -3,6 +3,9 @@ import { Notification } from '../libs/Notification';
 import { state, getPiano } from '../util/state';
 import { MIDI_KEY_NAMES, MIDI_TRANSPOSE } from '../util/constants';
 import { i18next } from '../util/translations';
+import { settings } from '../modules/settings/settings';
+import * as audioNew from './audio-new';
+import * as audioOld from './audio';
 
 export function initSynth(): void {
   const piano = getPiano();
@@ -59,10 +62,14 @@ export function initSynth(): void {
       state.enableSynth = !state.enableSynth;
       onOffBtn.className = state.enableSynth ? 'switched-on' : 'switched-off';
       if (!state.enableSynth) {
-        for (const i in audio.playings) {
-          if (!audio.playings.hasOwnProperty(i)) continue;
-          const playing = audio.playings[i];
-          if (playing && playing.voice) { playing.voice.osc.stop(); playing.voice = undefined; }
+        if (settings.newAudioEngine) {
+          (audio as audioNew.AudioEngineWeb).stopAllSynthVoices()
+        } else {
+          for (const i in (audio as audioOld.AudioEngineWeb).playings) {
+            if (!(audio as audioOld.AudioEngineWeb).playings.hasOwnProperty(i)) continue;
+            const playing = (audio as audioOld.AudioEngineWeb).playings[i];
+            if (playing && playing.voice) { playing.voice.osc.stop(); playing.voice = undefined; }
+          }
         }
       }
     });

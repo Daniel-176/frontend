@@ -529,6 +529,21 @@ export function initSettingsUI(): void {
             },
           );
 
+
+          createSetting(
+            'new-audio-engine',
+            'Enable experimental/new audio engine',
+            settings.newAudioEngine,
+            true,
+            html,
+            () => {
+              settings.newAudioEngine = !settings.newAudioEngine;
+              localStorage.newAudioEngine = settings.newAudioEngine;
+              alert("Refresh pending to change this setting.")
+            },
+          );
+
+
           createSetting(
             'force-dark-background',
             'Force dark background',

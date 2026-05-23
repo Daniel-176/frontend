@@ -1,87 +1,90 @@
-if (typeof module !== "undefined") {
-  module.exports = Color;
-} else {
-  this.Color = Color;
-}
+export class Color {
+  r: number;
+  g: number;
+  b: number;
 
-function Color() {
-  var r, g, b;
-  if (arguments.length === 1) {
-    var hexa = arguments[0].toLowerCase();
-    if (hexa.match(/^#[0-9a-f]{6}$/i)) {
-      hexa = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hexa);
-      if (hexa && hexa.length === 4) {
-        r = parseInt(hexa[1], 16);
-        g = parseInt(hexa[2], 16);
-        b = parseInt(hexa[3], 16);
+  static map: Record<string, Color> = {};
+
+  static addToMap(hexa: string, name: string): void {
+    Color.map[name] = new Color(hexa);
+  }
+
+  constructor(r?: string | number, g?: number, b?: number) {
+    let red: number | undefined;
+    let green: number | undefined;
+    let blue: number | undefined;
+
+    if (typeof r === "string" && g === undefined && b === undefined) {
+      const hexa = r.toLowerCase();
+      if (hexa.match(/^#[0-9a-f]{6}$/i)) {
+        const match = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hexa);
+        if (match && match.length === 4) {
+          red = parseInt(match[1], 16);
+          green = parseInt(match[2], 16);
+          blue = parseInt(match[3], 16);
+        }
+      }
+    } else if (typeof r === "number" && g !== undefined && b !== undefined) {
+      red = r;
+      green = g;
+      blue = b;
+    }
+
+    this.r = ~~(red as number) || 0;
+    this.g = ~~(green as number) || 0;
+    this.b = ~~(blue as number) || 0;
+  }
+
+  distance(color: Color): number {
+    let d = 0;
+    d += Math.pow(this.r - color.r, 2);
+    d += Math.pow(this.g - color.g, 2);
+    d += Math.pow(this.b - color.b, 2);
+    return Math.abs(Math.sqrt(d));
+  }
+
+  add(r: number, g: number, b: number): void {
+    this.r += r;
+    this.g += g;
+    this.b += b;
+    if (this.r < 0) this.r = 0;
+    else if (this.r > 255) this.r = 255;
+    if (this.g < 0) this.g = 0;
+    else if (this.g > 255) this.g = 255;
+    if (this.b < 0) this.b = 0;
+    else if (this.b > 255) this.b = 255;
+  }
+
+  toHexa(): string {
+    let r = (~~this.r || 0).toString(16);
+    let g = (~~this.g || 0).toString(16);
+    let b = (~~this.b || 0).toString(16);
+    if (r.length == 1) r = "0" + r;
+    if (g.length == 1) g = "0" + g;
+    if (b.length == 1) b = "0" + b;
+    return "#" + r + g + b;
+  }
+
+  getName(): string {
+    let low = 256;
+    let name: string | undefined;
+    for (const n in Color.map) {
+      if (!Color.map.hasOwnProperty(n)) continue;
+      const color = Color.map[n];
+      if (color.r === this.r && color.g === this.g && color.b === this.b) {
+        return n;
+      }
+      const dist = this.distance(color);
+      if (dist < low) {
+        low = dist;
+        name = n;
       }
     }
-  } else if (arguments.length === 3) {
-    r = arguments[0];
-    g = arguments[1];
-    b = arguments[2];
+    if (!name) name = this.toHexa();
+    else name = "A shade of " + name;
+    return name;
   }
-  this.r = ~~r || 0;
-  this.g = ~~g || 0;
-  this.b = ~~b || 0;
 }
-
-Color.prototype.distance = function (color) {
-  var d = 0;
-  d += Math.pow(this.r - color.r, 2);
-  d += Math.pow(this.g - color.g, 2);
-  d += Math.pow(this.b - color.b, 2);
-  return Math.abs(Math.sqrt(d));
-};
-
-Color.prototype.add = function (r, g, b) {
-  this.r += r;
-  this.g += g;
-  this.b += b;
-  if (this.r < 0) this.r = 0;
-  else if (this.r > 255) this.r = 255;
-  if (this.g < 0) this.g = 0;
-  else if (this.g > 255) this.g = 255;
-  if (this.b < 0) this.b = 0;
-  else if (this.b > 255) this.b = 255;
-};
-
-Color.prototype.toHexa = function () {
-  var r = (~~this.r || 0).toString(16),
-    g = (~~this.g || 0).toString(16),
-    b = (~~this.b || 0).toString(16);
-  if (r.length == 1) r = "0" + r;
-  if (g.length == 1) g = "0" + g;
-  if (b.length == 1) b = "0" + b;
-  return "#" + r + g + b;
-};
-
-Color.prototype.getName = function () {
-  var hexa = this.toHexa();
-  var low = 256;
-  var name;
-  for (var n in Color.map) {
-    if (!Color.map.hasOwnProperty(n)) continue;
-    var color = Color.map[n];
-    if (color.r === this.r && color.g === this.g && color.b === this.b) {
-      return n;
-    }
-    var dist = this.distance(color);
-    if (dist < low) {
-      low = dist;
-      name = n;
-    }
-  }
-  if (!name) name = this.toHexa();
-  else name = "A shade of " + name;
-  return name;
-};
-
-Color.map = {};
-
-Color.addToMap = function (hexa, name) {
-  Color.map[name] = new Color(hexa);
-};
 
 Color.addToMap("#7CB9E8", "Aero");
 Color.addToMap("#C9FFE5", "Aero blue");
@@ -136,7 +139,7 @@ Color.addToMap("#98777B", "Bazaar");
 Color.addToMap("#9F8170", "Beaver");
 Color.addToMap("#F5F5DC", "Beige");
 Color.addToMap("#2E5894", "B'dazzled blue");
-Color.addToMap("#9C2542", "Big dip o’ruby");
+Color.addToMap("#9C2542", "Big dip o'ruby");
 Color.addToMap("#FFE4C4", "Bisque");
 Color.addToMap("#3D2B1F", "Bistre");
 Color.addToMap("#967117", "Bistre brown");

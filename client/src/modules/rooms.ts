@@ -1,4 +1,4 @@
-import { fadeOut } from '../util/util';
+import { fadeIn, fadeOut } from '../util/util';
 import { getClient, getPiano } from '../util/state';
 import { settings } from './settings/settings';
 import { openModal, closeModal } from '../util/modal';
@@ -74,29 +74,34 @@ export function initRooms(): void {
   });
 
   document.getElementById('room')!.addEventListener('click', (evt: any) => {
-    evt.stopPropagation();
-    if ((evt.target as HTMLElement).classList.contains('info') && (evt.target as HTMLElement).closest('.more') !== null) {
-      fadeOut(document.querySelector('#room .more') as HTMLElement, 250);
-      const selected_name = (evt.target as HTMLElement).getAttribute('roomname');
-      if (typeof selected_name !== 'undefined') {
-        if (!evt.ctrlKey) changeRoom(selected_name!, 'right');
-        else window.open(`?c=${selected_name}`);
+      evt.stopPropagation();
+      const target = evt.target as HTMLElement;
+      const more = document.querySelector('#room .more') as HTMLElement;
+
+      if (target.classList.contains('info') && target.closest('.more') !== null) {
+        fadeOut(more, 250);
+        const selected_name = target.getAttribute('roomname');
+        if (selected_name !== null) {
+          if (!evt.ctrlKey) changeRoom(selected_name, 'right');
+          else window.open(`?c=${selected_name}`);
+        }
+        return;
       }
-      return false;
-    } else if ((evt.target as HTMLElement).classList.contains('new')) {
-      openModal('#new-room', 'input[name=name]');
-    }
-    const doc_click = (evt2: any) => {
-      if ((evt2.target as HTMLElement).closest('#room')) return;
-      document.removeEventListener('mousedown', doc_click);
-      fadeOut(document.querySelector('#room .more') as HTMLElement, 250);
-      gClient.sendArray([{ m: '-ls' }]);
-    };
-    document.addEventListener('mousedown', doc_click);
-    document.querySelectorAll('#room .more .info').forEach(el => el.remove());
-    (document.querySelector('#room .more') as HTMLElement).style.display = 'block';
-    gClient.sendArray([{ m: '+ls' }]);
-  });
+      else if (target.classList.contains('new')) {
+        openModal('#new-room', 'input[name=name]');
+      }
+
+      const doc_click = (evt2: any) => {
+        if ((evt2.target as HTMLElement).closest('#room')) return;
+        document.removeEventListener('mousedown', doc_click);
+        fadeOut(more, 250);
+        gClient.sendArray([{ m: '-ls' }]);
+      };
+      document.addEventListener('mousedown', doc_click);
+      document.querySelectorAll('#room .more .info').forEach(el => el.remove());
+      fadeIn(more, 0);
+      gClient.sendArray([{ m: '+ls' }]);
+    });
 
   document.getElementById('new-room-btn')!.addEventListener('click', (evt: any) => { evt.stopPropagation(); openModal('#new-room', 'input[name=name]'); });
   document.getElementById('play-alone-btn')!.addEventListener('click', (evt: any) => {

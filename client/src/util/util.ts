@@ -8,20 +8,20 @@ function getNaturalDisplay(el: HTMLElement): string {
 
 export function fadeIn(el: HTMLElement | undefined | null, ms: number, cb?: () => void): void {
   if (!el) return;
-
+  if ((el as any).__fadeOutTimer) {
+    clearTimeout((el as any).__fadeOutTimer);
+    (el as any).__fadeOutTimer = null;
+  }
   const isHidden =
     el.style.display === 'none' || getComputedStyle(el).display === 'none';
-
   el.style.opacity = '0';
   el.style.display = isHidden ? getNaturalDisplay(el) : getComputedStyle(el).display;
   el.style.transition = `opacity ${ms}ms`;
-
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       el.style.opacity = '1';
     });
   });
-
   setTimeout(() => {
     el.style.transition = '';
     cb?.();
@@ -30,11 +30,10 @@ export function fadeIn(el: HTMLElement | undefined | null, ms: number, cb?: () =
 
 export function fadeOut(el: HTMLElement | undefined | null, ms: number, cb?: () => void): void {
   if (!el) return;
-
   el.style.transition = `opacity ${ms}ms`;
   el.style.opacity = '0';
-
-  setTimeout(() => {
+  (el as any).__fadeOutTimer = setTimeout(() => {
+    (el as any).__fadeOutTimer = null;
     el.style.display = 'none';
     el.style.transition = '';
     el.style.opacity = '';

@@ -22,6 +22,7 @@ interface PooledVoice {
   startTime: number;
   generation: number;
   synthVoice: any;
+  vol: number;
 }
 
 class VoicePool {
@@ -42,6 +43,7 @@ class VoicePool {
         startTime: -Infinity,
         generation: 0,
         synthVoice: null,
+        vol: 0,
       };
       this.slots.push(v);
       this.free.push(v);
@@ -213,6 +215,7 @@ export class AudioEngineWeb extends AudioEngine {
     voice.noteId   = id;
     voice.partId   = part_id;
     voice.startTime = time;
+    voice.vol      = vol;
 
     if (state.enableSynth && state.synthVoice) {
       voice.synthVoice = new state.synthVoice(id, time);
@@ -226,12 +229,13 @@ export class AudioEngineWeb extends AudioEngine {
     if (!voice || voice.partId !== part_id) return;
 
     const time = this.context.currentTime + delay_ms / 1000;
+    const vol = voice.vol;
 
     voice.generation++;
     const gain = voice.gainNode.gain;
     gain.cancelScheduledValues(time);
-    gain.setValueAtTime(gain.value, time);
-    gain.linearRampToValueAtTime(gain.value * 0.1, time + 0.16);
+    gain.setValueAtTime(vol, time);
+    gain.linearRampToValueAtTime(vol * 0.1, time + 0.16);
     gain.linearRampToValueAtTime(0, time + 0.4);
     if (voice.source) {
       const releaseVoice = voice;

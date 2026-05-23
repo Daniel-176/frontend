@@ -54,7 +54,8 @@ export function initRooms(): void {
     for (const i in ls.u) {
       if (!ls.u.hasOwnProperty(i)) continue;
       const room = ls.u[i];
-      let info = document.querySelector('#room .info[roomid="' + (room.id + '').replace(/[\\"']/g, '\\$&').replace(/ /g, '\\0') + '"]') as HTMLElement | null;
+        let info = Array.from(document.querySelectorAll('#room .more .info'))
+          .find(el => el.getAttribute('roomid') === String(room.id)) as HTMLElement | null;
       if (!info) {
         info = document.createElement('div');
         info.className = 'info';

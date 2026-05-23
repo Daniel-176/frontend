@@ -18,6 +18,8 @@ import type { ChatMessage } from '../types';
 import { i18next } from "../util/translations";
 
 export interface Chat {
+  isShown: boolean;
+
   startDM(part: any): void;
   endDM(): void;
   startReply(part: any, id: any, msg?: any): void;
@@ -52,6 +54,8 @@ export function initChat(): Chat {
   const messageCache: ChatMessage[] = [];
 
   const chat: Chat = {
+    isShown: true,
+
     startDM(part: any): void {
       setIsDming(true);
       setDmParticipant(part);
@@ -107,10 +111,12 @@ export function initChat(): Chat {
 
     show(): void {
       fadeIn(document.getElementById('chat')!, 250);
+      this.isShown = true;
     },
 
     hide(): void {
       fadeOut(document.getElementById('chat')!, 250);
+      this.isShown = false;
     },
 
     clear(): void {
@@ -269,8 +275,9 @@ export function initChat(): Chat {
             setYoureReplied(true);
           }
         }
-        if (repliedMsg) {
-          const replyLinkEl = li.querySelector('.replyLink') as HTMLElement;
+        const replyLinkEl = li.querySelector('.replyLink') as HTMLElement;
+
+        if (repliedMsg && replyLinkEl) {
           replyLinkEl.textContent = `➥ ${
             repliedMsg.m === "dm"
               ? repliedMsg.sender!.name
@@ -310,8 +317,10 @@ export function initChat(): Chat {
             }, 5000);
           });
         } else {
-          (li.querySelector('.replyLink') as HTMLElement).textContent = "➥ Unknown Message";
-          Object.assign((li.querySelector('.replyLink') as HTMLElement).style, { background: "gray" });
+          if(replyLinkEl) {
+            (li.querySelector('.replyLink') as HTMLElement).textContent = "➥ Unknown Message";
+            Object.assign((li.querySelector('.replyLink') as HTMLElement).style, { background: "gray" });
+          }
         }
       }
 
@@ -509,9 +518,9 @@ export function initChat(): Chat {
   // Wire up client events
   gClient.on("ch", (msg: any) => {
     if (msg.ch.settings.chat) {
-      chat.show();
+      if(!chat.isShown) chat.show();
     } else {
-      chat.hide();
+      if(chat.isShown) chat.hide();
     }
   });
   gClient.on("disconnect", () => {});

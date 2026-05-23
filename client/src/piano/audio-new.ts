@@ -171,12 +171,17 @@ export class AudioEngineWeb extends AudioEngine {
 
     const prev = this.active.get(id);
     if (prev) {
+      prev.generation++;
       const pg = prev.gainNode.gain;
       pg.cancelScheduledValues(time);
       pg.setValueAtTime(pg.value, time);
       pg.linearRampToValueAtTime(0, time + 0.05);
       if (prev.source) {
+        const releasePrev = prev;
+        prev.source.onended = () => { this.pool.release(releasePrev); };
         try { prev.source.stop(time + 0.051); } catch {}
+      } else {
+        this.pool.release(prev);
       }
       if (prev.synthVoice) {
         try { prev.synthVoice.stop(time); } catch {}
@@ -222,13 +227,18 @@ export class AudioEngineWeb extends AudioEngine {
 
     const time = this.context.currentTime + delay_ms / 1000;
 
+    voice.generation++;
     const gain = voice.gainNode.gain;
     gain.cancelScheduledValues(time);
     gain.setValueAtTime(gain.value, time);
     gain.linearRampToValueAtTime(gain.value * 0.1, time + 0.16);
     gain.linearRampToValueAtTime(0, time + 0.4);
     if (voice.source) {
+      const releaseVoice = voice;
+      voice.source.onended = () => { this.pool.release(releaseVoice); };
       try { voice.source.stop(time + 0.41); } catch {}
+    } else {
+      this.pool.release(voice);
     }
     if (voice.synthVoice) {
       try { voice.synthVoice.stop(time); } catch {}

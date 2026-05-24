@@ -84,13 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	const client = initConnection();
 	initKeyboard();
-    initRooms();
-    initModals();
+  initRooms();
+  initModals();
 	const chat = initChat();
 	initMidi();
 	initSynth();
 	initSettingsUI();
-	initConfetti();
 
 	if (window !== top) {
 		alert(

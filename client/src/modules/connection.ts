@@ -7,6 +7,7 @@ import { openModal, closeModal, modalHandleEsc } from '../util/modal';
 import { fadeIn, fadeOut,  getParameterByName, getRoomNameFromURL  } from '../util/util';
 import type { Participant } from '../types';
 import { i18next } from '../util/translations';
+import { removeConfetti, startConfetti } from './confetti';
 
 let tabIsActive = true;
 let youreMentioned = false;
@@ -684,7 +685,14 @@ export function initConnection(): Client {
 	gClient.on('ch', (msg: any) => {
 		const chidlo = msg.ch._id.toLowerCase();
 		const pianoEl = document.getElementById('piano') as HTMLElement;
-		if (chidlo === 'spin' || chidlo.substr(-5) === '/spin') {
+
+    if (chidlo === "confetti" || chidlo.substr(-9) === "/confetti") {
+      startConfetti()
+    } else {
+      removeConfetti()
+    }
+
+    if (chidlo === 'spin' || chidlo.substr(-5) === '/spin') {
 			pianoEl.classList.add('spin');
 		} else {
 			pianoEl.classList.remove('spin');

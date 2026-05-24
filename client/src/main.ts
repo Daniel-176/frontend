@@ -24,6 +24,7 @@ import {
 import { i18next, i18nextify, start } from './util/translations';
 import { closeModal, getModal, openModal } from './util/modal';
 import { EventEmitter } from './util/util';
+import { initModals } from 'modules/modals';
 
 if (location.host === 'multiplayerpiano.com') {
 	const url = new URL('https://multiplayerpiano.net/' + location.search);
@@ -83,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	const client = initConnection();
 	initKeyboard();
-	initRooms();
+    initRooms();
+    initModals();
 	const chat = initChat();
 	initMidi();
 	initSynth();

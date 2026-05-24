@@ -176,6 +176,7 @@ table {
 
 input[type="range"] {
   -webkit-appearance: none;
+  appearance: none;
   /* Remove Safari default */
   outline: none;
   width: 210px;
@@ -193,6 +194,7 @@ input[type="range"] {
       color-stop(1, hsl(200, 80%, 45%)));
 
   -webkit-background-clip: padding-box;
+  background-clip: padding-box;
   border: 0;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
   cursor: ew-resize;
@@ -246,6 +248,9 @@ input[type="range"]:hover {
       color-stop(0.92, hsl(200, 80%, 15%)),
       color-stop(1, hsl(200, 80%, 45%)));
 
+  box-shadow:
+    inset #000 1px 1px 1px,
+    inset #000 -1px -1px 1px;
   -webkit-box-shadow:
     inset #000 1px 1px 1px,
     inset #000 -1px -1px 1px;
@@ -303,6 +308,7 @@ input[type="range"]:hover {
   transform: translateY(1%);
   -webkit-transform: translateY(1%);
   -webkit-box-shadow: 0 1px 2px #000;
+  box-shadow: 0 1px 2px #000;
 }
 
 .ease-out {
@@ -703,6 +709,7 @@ input[type="range"]:hover {
   background: url(/volume2.png) no-repeat;
   background-position: 50% 50%;
   -webkit-appearance: none;
+  appearance: none;
   -moz-box-shadow: none;
   -webkit-box-shadow: none;
   box-shadow: none;

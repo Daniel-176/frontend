@@ -10,8 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
     "rootDir": "./client/src",
-    "baseUrl": "."
+    "baseUrl": "./client/src"
   },
-  "include": ["client/src/**/*.ts"],
+  "include": ["client/src/**/*.ts", "client/rooms.ts"],
   "exclude": ["node_modules"]
 }

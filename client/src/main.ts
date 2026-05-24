@@ -13,6 +13,7 @@ import { initConfetti } from './modules/confetti';
 import { Notification } from './libs/Notification';
 import { press, release, pressSustain, releaseSustain, setPress, setRelease, setPressSustain, setReleaseSustain } from './util/actions';
 import { start } from './util/translations';
+import { closeModal, getModal, openModal } from './util/modal';
 
 if (location.host === 'multiplayerpiano.com') {
   const url = new URL('https://multiplayerpiano.net/' + location.search);
@@ -81,5 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
     noteQuota: state.noteQuota,
     soundSelector,
     Notification,
+    modal: {
+      getModal, closeModal, openModal
+    }
   };
 });

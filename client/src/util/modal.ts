@@ -2,9 +2,9 @@ import { settings } from '../modules/settings/settings';
 import { state } from './state';
 import { fadeIn, fadeOut } from './util';
 
-let gModal: string | null = null;
+let gModal: HTMLElement | null = null;
 
-export function getModal(): string | null { return gModal; }
+export function getModal(): HTMLElement | null { return gModal; }
 
 export function modalHandleEsc(evt: KeyboardEvent): void {
   if (
@@ -12,8 +12,7 @@ export function modalHandleEsc(evt: KeyboardEvent): void {
     ((evt.keyCode === 32 || evt.keyCode === 13) &&
       document.activeElement &&
       (document.activeElement as HTMLInputElement).type !== 'text' &&
-      gModal !== '#age' &&
-      gModal !== '#siteban')
+      gModal?.id !== 'siteban')
   ) {
     closeModal();
     if (!settings.noPreventDefault) evt.preventDefault();
@@ -21,7 +20,7 @@ export function modalHandleEsc(evt: KeyboardEvent): void {
   }
 }
 
-export function openModal(selector: string, focus?: string): void {
+export function openModal(selector: string | HTMLElement, focus?: string): void {
   if (state.chat) state.chat.blur();
   const { releaseKeyboard } = require('../modules/keyboard');
   releaseKeyboard();
@@ -32,7 +31,13 @@ export function openModal(selector: string, focus?: string): void {
   }
   const modal = document.getElementById('modal')!;
   fadeIn(modal, 250);
-  const target = document.querySelector(selector) as HTMLElement;
+  let target: HTMLElement;
+  if (typeof selector == "string") {
+    target = document.querySelector(selector) as HTMLElement;
+  } else {
+    target = selector;
+  }
+
   if (target) target.style.display = 'block';
   if (focus) {
     setTimeout(() => {
@@ -40,11 +45,10 @@ export function openModal(selector: string, focus?: string): void {
       if (focusEl) focusEl.focus();
     }, 100);
   }
-  gModal = selector;
+  gModal = target;
 }
 
 export function closeModal(): void {
-  if (gModal === '#age') return;
   document.removeEventListener('keydown', modalHandleEsc);
   const modal = document.getElementById('modal')!;
   fadeOut(modal, 100);

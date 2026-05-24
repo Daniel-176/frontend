@@ -38,7 +38,7 @@ export function initChat(): Chat {
   const gClient = getClient();
 
   // Lazy require to avoid circular deps
-  const getModal = (): string | null => {
+  const getModal = (): HTMLElement | null => {
     const { getModal: gm } = require("../util/modal");
     return gm();
   };

@@ -2,10 +2,9 @@ import { Client } from '../libs/Client';
 import { Notification } from '../libs/Notification';
 import { state, getPiano } from '../util/state';
 import { settings } from './settings/settings';
-import { getParameterByName, getRoomNameFromURL } from '../util/url-utils';
 import { DEFAULT_VELOCITY, TIMING_TARGET } from '../util/constants';
 import { openModal, closeModal, modalHandleEsc } from '../util/modal';
-import { fadeIn, fadeOut } from '../util/util';
+import { fadeIn, fadeOut,  getParameterByName, getRoomNameFromURL  } from '../util/util';
 import type { Participant } from '../types';
 import { i18next } from '../util/translations';
 

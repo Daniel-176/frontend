@@ -1,11 +1,10 @@
-import { fadeIn, fadeOut } from '../util/util';
+import { fadeIn, fadeOut, getRoomNameFromURL } from '../util/util';
 import { getClient, getPiano } from '../util/state';
 import { settings } from './settings/settings';
 import { openModal, closeModal } from '../util/modal';
-import { getRoomNameFromURL } from '../util/url-utils';
 import { Notification } from '../libs/Notification';
 import { i18next } from '../util/translations';
-import { setKeyboardTimeout, setKeyboardNotification } from './keyboard-hint';
+import { setKeyboardTimeout, setKeyboardNotification } from './keyboard';
 
 export function initRooms(): void {
 	const gClient = getClient();

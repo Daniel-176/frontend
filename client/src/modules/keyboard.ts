@@ -14,7 +14,7 @@ import { openModal } from '../util/modal';
 import { fadeIn, fadeOut } from '../util/util';
 import type { Participant } from '../types';
 import { i18next } from '../util/translations';
-import { clearKeyboardHint } from './keyboard-hint';
+import { clearKeyboardHint } from './keyboard';
 import { initBackground } from './background';
 
 let gKeyboardSeq = 0;
@@ -27,6 +27,9 @@ let key_binding: Record<
 >;
 let capturingKeyboard = false;
 let capsLockKey = false;
+
+let knowsYouCanUseKeyboardTimeout: ReturnType<typeof setTimeout> | undefined;
+let knowsYouCanUseKeyboardNotification: { close: () => void } | undefined;
 
 // DM state
 let gDmParticipant: Participant | null = null;
@@ -775,4 +778,22 @@ export function shouldShowSnowflakes(): void {
 	if (snowflakes) {
 		snowflakes.style.visibility = settings.snowflakes ? 'visible' : 'hidden';
 	}
+}
+
+
+export function setKeyboardTimeout(
+	timeout: ReturnType<typeof setTimeout>,
+): void {
+	knowsYouCanUseKeyboardTimeout = timeout;
+}
+
+export function setKeyboardNotification(notification: Notification): void {
+	knowsYouCanUseKeyboardNotification = notification;
+}
+
+export function clearKeyboardHint(): void {
+	if (knowsYouCanUseKeyboardTimeout)
+		clearTimeout(knowsYouCanUseKeyboardTimeout);
+	if (knowsYouCanUseKeyboardNotification)
+		knowsYouCanUseKeyboardNotification.close();
 }

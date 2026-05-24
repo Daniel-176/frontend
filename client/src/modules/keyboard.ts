@@ -14,7 +14,6 @@ import { openModal } from '../util/modal';
 import { fadeIn, fadeOut } from '../util/util';
 import type { Participant } from '../types';
 import { i18next } from '../util/translations';
-import { clearKeyboardHint } from './keyboard';
 import { initBackground } from './background';
 
 let gKeyboardSeq = 0;

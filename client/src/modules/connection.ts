@@ -123,8 +123,11 @@ export function initConnection(): Client {
 		if (!msg.motd)
 			msg.motd =
 				'This site makes a lot of sound! You may want to adjust the volume before continuing.';
-		document.getElementById('motd-text')!.innerHTML = msg.motd;
-		openModal('#motd');
+    document.getElementById('motd-text')!.innerHTML = msg.motd;
+    requestAnimationFrame(() => {
+        document.getElementById('motd').style.height = document.getElementById('motd-text').scrollHeight+50 + "px";
+    });
+    openModal('#motd');
 		document.addEventListener('keydown', modalHandleEsc);
 		const user_interact = (evt: any) => {
 			if (

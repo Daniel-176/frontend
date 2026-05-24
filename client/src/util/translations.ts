@@ -1,7 +1,7 @@
 import * as I18ni from 'i18nextify';
 import type { i18n as I18n } from 'i18next';
 
-export const start = I18ni.init({ autorun: false, fallbackLng: 'en' })!.start;
+export const start = I18ni.init({ autorun: false, fallbackLng: 'en', returnEmptyString: false })!.start;
 
 export const i18nextify = I18ni;
 

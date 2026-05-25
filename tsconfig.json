@@ -9,9 +9,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
-    "rootDir": "./client/src",
-    "baseUrl": "./client/src"
+    "rootDir": "./src",
+    "baseUrl": "./src"
   },
-  "include": ["client/src/**/*.ts", "client/rooms.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }

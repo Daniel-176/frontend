@@ -10,8 +10,8 @@
     "typescript": "^5.4.0"
   },
   "scripts": {
-    "build": "bun build src/main.ts --outfile=client/script.js --outdir=client/ --entry-naming=[dir]/script.[ext] --sourcemap=linked --format=iife--target=browser",
-    "build:min": "bun build src/main.ts --outfile=client/script.js --outdir=client/ --entry-naming=[dir]/script.[ext] --sourcemap=linked --format=iife --target=browser --minify",
+    "build": "bun build src/main.ts --outfile=client/script.js --outdir=client/ --entry-naming=[dir]/script.[ext] --sourcemap=linked --format=iife --target=browser",
+    "build:min": "bun run build -- --minify",
     "typecheck": "tsc --project tsconfig.json"
   },
   "dependencies": {

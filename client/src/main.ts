@@ -1,15 +1,13 @@
-import { settings } from './modules/settings/settings';
 import { state } from './util/state';
 import { Piano } from './piano/piano';
 import { SoundSelector } from './libs/SoundSelector';
 import { initConnection } from './modules/connection';
-import { initKeyboard, captureKeyboard } from './modules/keyboard';
+import { initKeyboard } from './modules/keyboard';
 import { initRooms } from './modules/rooms';
 import { initChat } from './modules/chat';
 import { initMidi } from './piano/midi';
 import { initSynth } from './piano/synth';
 import { initSettingsUI } from './modules/settings/settings-ui';
-import { initConfetti } from './modules/confetti';
 import { Notification } from './libs/Notification';
 import {
 	press,

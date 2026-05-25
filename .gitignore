@@ -129,4 +129,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 script.js
+script.js.map
 originalCode.js

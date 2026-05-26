@@ -35,4 +35,4 @@ jobs:
         run: |
           BRANCH=${GITHUB_REF##*/}
           DEPLOY_PATH=$([[ "$BRANCH" == "main" ]] && echo "${{ secrets.DEPLOY_PATH }}" || echo "${{ secrets.DEPLOY_PATH_DEV }}")
-          rsync -az --delete --exclude='node_modules' ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:"$DEPLOY_PATH"
+          rsync -az --no-owner --no-group --delete --exclude='node_modules' ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:"$DEPLOY_PATH"

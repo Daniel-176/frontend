@@ -131,3 +131,4 @@ dist
 script.js
 script.js.map
 originalCode.js
+piano-worklet-processor.js

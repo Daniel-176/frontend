@@ -11,6 +11,8 @@ export function initSynth(): void {
 	const piano = getPiano();
 	const audio = piano.audio;
 	const context = piano.audio.context;
+	const isWorklet = settings.newAudioEngine;
+
 	const synth_gain = context.createGain();
 	synth_gain.gain.value = 0.05;
 	synth_gain.connect(audio.synthGain);
@@ -23,31 +25,41 @@ export function initSynth(): void {
 	let osc1_sustain = 0.5;
 	let osc1_release = 2.0;
 
-	function SynthVoice(this: any, note_name: string, time: number) {
-		const note_number = MIDI_KEY_NAMES.indexOf(note_name) + 9 - MIDI_TRANSPOSE;
-		const freq = Math.pow(2, (note_number - 69) / 12) * 440.0;
-		this.osc = context.createOscillator();
-		this.osc.type = osc1_type;
-		this.osc.frequency.value = freq;
-		this.gain = context.createGain();
-		this.gain.gain.value = 0;
-		this.osc.connect(this.gain);
-		this.gain.connect(synth_gain);
-		this.osc.start(time);
-		this.gain.gain.setValueAtTime(0, time);
-		this.gain.gain.linearRampToValueAtTime(1, time + osc1_attack);
-		this.gain.gain.linearRampToValueAtTime(
-			osc1_sustain,
-			time + osc1_attack + osc1_decay,
-		);
+	function pushSynthParams() {
+		if (isWorklet) {
+			(audio as audioNew.AudioEngineWeb).setSynthParams(
+				osc_type_index, osc1_attack, osc1_decay, osc1_sustain, osc1_release,
+			);
+		}
 	}
-	SynthVoice.prototype.stop = function (time: number) {
-		this.gain.gain.linearRampToValueAtTime(0, time + osc1_release);
-		this.osc.stop(time + osc1_release);
-	};
+
+	if (!isWorklet) {
+		function SynthVoice(this: any, note_name: string, time: number) {
+			const note_number = MIDI_KEY_NAMES.indexOf(note_name) + 9 - MIDI_TRANSPOSE;
+			const freq = Math.pow(2, (note_number - 69) / 12) * 440.0;
+			this.osc = context.createOscillator();
+			this.osc.type = osc1_type;
+			this.osc.frequency.value = freq;
+			this.gain = context.createGain();
+			this.gain.gain.value = 0;
+			this.osc.connect(this.gain);
+			this.gain.connect(synth_gain);
+			this.osc.start(time);
+			this.gain.gain.setValueAtTime(0, time);
+			this.gain.gain.linearRampToValueAtTime(1, time + osc1_attack);
+			this.gain.gain.linearRampToValueAtTime(
+				osc1_sustain,
+				time + osc1_attack + osc1_decay,
+			);
+		}
+		SynthVoice.prototype.stop = function (time: number) {
+			this.gain.gain.linearRampToValueAtTime(0, time + osc1_release);
+			this.osc.stop(time + osc1_release);
+		};
+		state.synthVoice = SynthVoice as any;
+	}
 
 	state.enableSynth = false;
-	state.synthVoice = SynthVoice as any;
 	const button = document.getElementById('synth-btn')!;
 	let notification: {
 		close: () => void;
@@ -71,18 +83,19 @@ export function initSynth(): void {
 		onOffBtn.addEventListener('click', () => {
 			state.enableSynth = !state.enableSynth;
 			onOffBtn.className = state.enableSynth ? 'switched-on' : 'switched-off';
-			if (!state.enableSynth) {
-				if (settings.newAudioEngine) {
+			if (isWorklet) {
+				(audio as audioNew.AudioEngineWeb).setSynthEnabled(state.enableSynth);
+				if (!state.enableSynth) {
 					(audio as audioNew.AudioEngineWeb).stopAllSynthVoices();
-				} else {
-					for (const i in (audio as audioOld.AudioEngineWeb).playings) {
-						if (!(audio as audioOld.AudioEngineWeb).playings.hasOwnProperty(i))
-							continue;
-						const playing = (audio as audioOld.AudioEngineWeb).playings[i];
-						if (playing && playing.voice) {
-							playing.voice.osc.stop();
-							playing.voice = undefined;
-						}
+				}
+			} else if (!state.enableSynth) {
+				for (const i in (audio as audioOld.AudioEngineWeb).playings) {
+					if (!(audio as audioOld.AudioEngineWeb).playings.hasOwnProperty(i))
+						continue;
+					const playing = (audio as audioOld.AudioEngineWeb).playings[i];
+					if (playing && playing.voice) {
+						playing.voice.osc.stop();
+						playing.voice = undefined;
 					}
 				}
 			}
@@ -115,6 +128,7 @@ export function initSynth(): void {
 			if (++osc_type_index >= osc_types.length) osc_type_index = 0;
 			osc1_type = osc_types[osc_type_index];
 			typeBtn.value = i18next.t(osc1_type);
+			pushSynthParams();
 		});
 		html.appendChild(typeBtn);
 
@@ -128,6 +142,7 @@ export function initSynth(): void {
 				unit: 's',
 				setter: (v: number) => {
 					osc1_attack = v;
+					pushSynthParams();
 				},
 			},
 			{
@@ -139,6 +154,7 @@ export function initSynth(): void {
 				unit: 's',
 				setter: (v: number) => {
 					osc1_decay = v;
+					pushSynthParams();
 				},
 			},
 			{
@@ -150,6 +166,7 @@ export function initSynth(): void {
 				unit: 'x',
 				setter: (v: number) => {
 					osc1_sustain = v;
+					pushSynthParams();
 				},
 			},
 			{
@@ -161,6 +178,7 @@ export function initSynth(): void {
 				unit: 's',
 				setter: (v: number) => {
 					osc1_release = v;
+					pushSynthParams();
 				},
 			},
 		];

@@ -1,127 +1,61 @@
 import { Notification } from '../libs/Notification';
-import { state } from '../util/state';
+import {
+	SAB_BYTES, CTRL_BYTES, RING_CAPACITY, EVENT_FIELDS,
+	CTRL_WRITE_HEAD, CTRL_READ_HEAD, CTRL_VOLUME_F32,
+	CTRL_SYNTH_ENABLED, CTRL_SYNTH_TYPE,
+	CTRL_SYNTH_ATTACK_F32, CTRL_SYNTH_DECAY_F32,
+	CTRL_SYNTH_SUSTAIN_F32, CTRL_SYNTH_RELEASE_F32,
+	CTRL_PIANO_GAIN_F32, CTRL_SYNTH_GAIN_F32,
+	CMD_PLAY, CMD_STOP, CMD_STOP_ALL_SYNTH,
+} from './ring-buffer-layout';
 
 export class AudioEngine {
 	volume: number = 0.6;
 	sounds: Record<string, AudioBuffer> = {};
 	paused: boolean = true;
 
-	init(): this {
-		return this;
-	}
+	init(): this { return this; }
 	load(_id: string, _url: string, _cb?: () => void): void {}
 	play(_id: string, _vol: number, _delay_ms: number, _part_id: string): void {}
 	stop(_id: string, _delay_ms: number, _part_id: string): void {}
-	setVolume(vol: number): void {
-		this.volume = vol;
-	}
-	resume(): void {
-		this.paused = false;
-	}
+	setVolume(vol: number): void { this.volume = vol; }
+	resume(): void { this.paused = false; }
 }
 
-interface PooledVoice {
-	gainNode: GainNode;
-	source: AudioBufferSourceNode | null;
-	noteId: string;
-	partId: string;
-	startTime: number;
-	generation: number;
-	synthVoice: any;
-	vol: number;
+const _idToIdx = new Map<string, number>();
+let _nextIdx = 0;
+function internId(id: string): number {
+	let i = _idToIdx.get(id);
+	if (i === undefined) { i = _nextIdx++; _idToIdx.set(id, i); }
+	return i;
 }
 
-class VoicePool {
-	private readonly slots: PooledVoice[];
-	private readonly free: PooledVoice[];
-
-	constructor(context: AudioContext, destination: AudioNode, size: number) {
-		this.slots = [];
-		this.free = [];
-		for (let i = 0; i < size; i++) {
-			const gainNode = context.createGain();
-			gainNode.connect(destination);
-			const v: PooledVoice = {
-				gainNode,
-				source: null,
-				noteId: '',
-				partId: '',
-				startTime: -Infinity,
-				generation: 0,
-				synthVoice: null,
-				vol: 0,
-			};
-			this.slots.push(v);
-			this.free.push(v);
-		}
+function fnv1a(str: string): number {
+	let h = 0x811c9dc5;
+	for (let i = 0; i < str.length; i++) {
+		h ^= str.charCodeAt(i);
+		h = Math.imul(h, 0x01000193);
 	}
-
-	acquire(now: number): PooledVoice {
-		const v = this.free.pop();
-		if (v) return v;
-
-		let oldest = this.slots[0];
-		for (let i = 1; i < this.slots.length; i++) {
-			if (this.slots[i].startTime < oldest.startTime) oldest = this.slots[i];
-		}
-
-		if (oldest.source) {
-			try {
-				oldest.source.stop(now);
-			} catch {
-				/* already stopped */
-			}
-			oldest.source = null;
-		}
-		if (oldest.synthVoice) {
-			try {
-				oldest.synthVoice.stop(now);
-			} catch {}
-			oldest.synthVoice = null;
-		}
-		oldest.generation++;
-		return oldest;
-	}
-
-	release(v: PooledVoice): void {
-		v.source = null;
-		v.synthVoice = null;
-		this.free.push(v);
-	}
-
-	reset(): void {
-		for (const v of this.slots) {
-			if (v.source) {
-				try {
-					v.source.stop(0);
-				} catch {}
-				v.source = null;
-			}
-			if (v.synthVoice) {
-				try {
-					v.synthVoice.stop(0);
-				} catch {}
-				v.synthVoice = null;
-			}
-			v.generation++;
-		}
-		this.free.length = 0;
-		this.free.push(...this.slots);
-	}
+	return h >>> 0;
 }
 
 export class AudioEngineWeb extends AudioEngine {
-	private static readonly POOL_SIZE = 128;
-
 	context!: AudioContext;
 	masterGain!: GainNode;
 	limiterNode!: DynamicsCompressorNode;
 	pianoGain!: GainNode;
 	synthGain!: GainNode;
 
-	private pool!: VoicePool;
-
-	private active: Map<string, PooledVoice> = new Map();
+	private sab!: SharedArrayBuffer | null;
+	private ctrl!: Int32Array | null;
+	private ctrlF32!: Float32Array | null;
+	private ring!: Uint32Array | null;
+	private ringF32!: Float32Array | null;
+	private useSAB: boolean = false;
+	private node!: AudioWorkletNode;
+	private ready: boolean = false;
+	private pendingQueue: any[] = [];
+	private loadedNotes: Set<string> = new Set();
 
 	init(): this {
 		super.init();
@@ -147,161 +81,194 @@ export class AudioEngineWeb extends AudioEngine {
 		this.synthGain.gain.value = 0.5;
 		this.synthGain.connect(this.limiterNode);
 
-		this.pool = new VoicePool(
-			this.context,
-			this.pianoGain,
-			AudioEngineWeb.POOL_SIZE,
-		);
-		this.active = new Map();
+		this._initWorklet();
 		return this;
 	}
 
+	private async _initWorklet(): Promise<void> {
+		try {
+			await this.context.audioWorklet.addModule('./piano-worklet-processor.js');
+		} catch (e) {
+			new Notification({
+				id: 'worklet-load-error',
+				title: 'Problem',
+				text: `AudioWorklet failed to load: ${(e as Error).message}`,
+				target: '#piano',
+				duration: 10000,
+			});
+			return;
+		}
+
+		this.node = new AudioWorkletNode(this.context, 'piano-worklet-processor', {
+			numberOfInputs: 0,
+			numberOfOutputs: 1,
+			outputChannelCount: [2],
+		});
+		this.node.connect(this.masterGain);
+
+		this.useSAB = typeof SharedArrayBuffer !== 'undefined' && crossOriginIsolated;
+		if (!this.useSAB) {
+			console.warn('[AudioEngineWorklet] SharedArrayBuffer unavailable — using MessagePort fallback (higher latency)');
+		}
+		if (this.useSAB) {
+			this.sab = new SharedArrayBuffer(SAB_BYTES);
+			this.ctrl = new Int32Array(this.sab, 0, CTRL_BYTES / 4);
+			this.ctrlF32 = new Float32Array(this.sab, 0, CTRL_BYTES / 4);
+			this.ring = new Uint32Array(this.sab, CTRL_BYTES);
+			this.ringF32 = new Float32Array(this.sab, CTRL_BYTES);
+			this.ctrlF32[CTRL_VOLUME_F32] = this.volume;
+			this.ctrlF32[CTRL_PIANO_GAIN_F32] = 0.5;
+			this.ctrlF32[CTRL_SYNTH_GAIN_F32] = 0.025;
+			this.node.port.postMessage({ cmd: 'init', sab: this.sab, sampleRate: this.context.sampleRate });
+		} else {
+			this.sab = null;
+			this.ctrl = null;
+			this.ctrlF32 = null;
+			this.ring = null;
+			this.ringF32 = null;
+			this.node.port.postMessage({ cmd: 'init', sab: null, sampleRate: this.context.sampleRate });
+		}
+
+		this.ready = true;
+		this._flushPending();
+	}
+
+	private _flushPending(): void {
+		for (const msg of this.pendingQueue) {
+			this.node.port.postMessage(msg);
+		}
+		this.pendingQueue.length = 0;
+	}
+
 	stopAllSynthVoices(): void {
-		for (const voice of this.active.values()) {
-			if (voice.synthVoice) {
-				try {
-					voice.synthVoice.osc.stop();
-				} catch {}
-				voice.synthVoice = null;
-			}
+		if (this.useSAB && this.ctrl && this.ring && this.ringF32) {
+			this._writeEvent(CMD_STOP_ALL_SYNTH, 0, 0, 0, 0);
+		} else if (this.ready) {
+			this.node.port.postMessage({ cmd: 'stopAllSynth' });
 		}
 	}
 
 	load(id: string, url: string, cb?: () => void): void {
 		fetch(url)
-			.then(res => {
-				if (!res.ok) throw new Error(`HTTP ${res.status}`);
-				return res.arrayBuffer();
-			})
+			.then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); })
 			.then(buf => this.context.decodeAudioData(buf))
 			.then(decoded => {
 				this.sounds[id] = decoded;
+				this.loadedNotes.add(id);
+				this._transferSample(id, decoded);
 				cb?.();
 			})
-			.catch(e => {
-				new Notification({
-					id: 'audio-download-error',
-					title: 'Problem',
-					text: `Audio download failed: ${e.message}`,
-					target: '#piano',
-					duration: 10000,
-				});
-			});
+			.catch(e => new Notification({
+				id: 'audio-download-error',
+				title: 'Problem',
+				text: `Audio download failed: ${(e as Error).message}`,
+				target: '#piano',
+				duration: 10000,
+			}));
+	}
+
+	private _transferSample(id: string, buffer: AudioBuffer): void {
+		const noteIdx = internId(id);
+		const channels: ArrayBuffer[] = [];
+		const channelData: Float32Array[] = [];
+		for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+			const data = buffer.getChannelData(ch);
+			const copy = new Float32Array(data.length);
+			copy.set(data);
+			channelData.push(copy);
+			channels.push(copy.buffer);
+		}
+		const msg = {
+			cmd: 'load',
+			noteIdx,
+			sampleRate: buffer.sampleRate,
+			channels: channelData,
+		};
+		if (this.ready) {
+			this.node.port.postMessage(msg, channels);
+		} else {
+			this.pendingQueue.push(msg);
+		}
 	}
 
 	play(id: string, vol: number, delay_ms: number, part_id: string): void {
-		if (this.paused || !(id in this.sounds)) return;
-		const time = this.context.currentTime + delay_ms / 1000;
-		this.schedulePlay(id, vol, time, part_id);
-	}
+		if (this.paused || !this.loadedNotes.has(id)) return;
+		const noteIdx = internId(id);
+		const delayFrames = Math.round((delay_ms / 1000) * this.context.sampleRate);
+		const partHash = fnv1a(part_id);
 
-	private schedulePlay(
-		id: string,
-		vol: number,
-		time: number,
-		part_id: string,
-	): void {
-		const now = this.context.currentTime;
-
-		const prev = this.active.get(id);
-		if (prev) {
-			prev.generation++;
-			const pg = prev.gainNode.gain;
-			pg.cancelScheduledValues(time);
-			pg.setValueAtTime(pg.value, time);
-			pg.linearRampToValueAtTime(0, time + 0.05);
-			if (prev.source) {
-				const releasePrev = prev;
-				prev.source.onended = () => {
-					this.pool.release(releasePrev);
-				};
-				try {
-					prev.source.stop(time + 0.051);
-				} catch {}
-			} else {
-				this.pool.release(prev);
-			}
-			if (prev.synthVoice) {
-				try {
-					prev.synthVoice.stop(time);
-				} catch {}
-			}
+		if (this.useSAB && this.ctrl && this.ring && this.ringF32) {
+			this._writeEvent(CMD_PLAY, noteIdx, vol, delayFrames, partHash);
+		} else if (this.ready) {
+			this.node.port.postMessage({ cmd: 'play', noteIdx, vol, delayFrames, partHash });
+		} else {
+			this.pendingQueue.push({ cmd: 'play', noteIdx, vol, delayFrames, partHash });
 		}
-
-		const voice = this.pool.acquire(now);
-		voice.generation++;
-		const capturedGen = voice.generation;
-
-		const source = this.context.createBufferSource();
-		source.buffer = this.sounds[id];
-
-		const gain = voice.gainNode.gain;
-		gain.cancelScheduledValues(time);
-		gain.setValueAtTime(vol, time);
-
-		source.connect(voice.gainNode);
-		source.start(time);
-
-		source.onended = () => {
-			if (voice.generation === capturedGen) {
-				this.active.delete(id);
-				this.pool.release(voice);
-			}
-		};
-
-		voice.source = source;
-		voice.noteId = id;
-		voice.partId = part_id;
-		voice.startTime = time;
-		voice.vol = vol;
-
-		if (state.enableSynth && state.synthVoice) {
-			voice.synthVoice = new state.synthVoice(id, time);
-		}
-
-		this.active.set(id, voice);
 	}
 
 	stop(id: string, delay_ms: number, part_id: string): void {
-		const voice = this.active.get(id);
-		if (!voice || voice.partId !== part_id) return;
+		const noteIdx = internId(id);
+		const delayFrames = Math.round((delay_ms / 1000) * this.context.sampleRate);
+		const partHash = fnv1a(part_id);
 
-		const time = this.context.currentTime + delay_ms / 1000;
-		const vol = voice.vol;
-
-		voice.generation++;
-		const gain = voice.gainNode.gain;
-		gain.cancelScheduledValues(time);
-		gain.setValueAtTime(vol, time);
-		gain.linearRampToValueAtTime(vol * 0.1, time + 0.16);
-		gain.linearRampToValueAtTime(0, time + 0.4);
-		if (voice.source) {
-			const releaseVoice = voice;
-			voice.source.onended = () => {
-				this.pool.release(releaseVoice);
-			};
-			try {
-				voice.source.stop(time + 0.41);
-			} catch {}
+		if (this.useSAB && this.ctrl && this.ring && this.ringF32) {
+			this._writeEvent(CMD_STOP, noteIdx, 0, delayFrames, partHash);
+		} else if (this.ready) {
+			this.node.port.postMessage({ cmd: 'stop', noteIdx, vol: 0, delayFrames, partHash });
 		} else {
-			this.pool.release(voice);
+			this.pendingQueue.push({ cmd: 'stop', noteIdx, vol: 0, delayFrames, partHash });
 		}
-		if (voice.synthVoice) {
-			try {
-				voice.synthVoice.stop(time);
-			} catch {}
-		}
+	}
 
-		this.active.delete(id);
+	private _writeEvent(cmd: number, noteIdx: number, vol: number, delayFrames: number, partHash: number): void {
+		const ctrl = this.ctrl!;
+		const ring = this.ring!;
+		const ringF32 = this.ringF32!;
+		const writeHead = Atomics.load(ctrl, CTRL_WRITE_HEAD);
+		const readHead = Atomics.load(ctrl, CTRL_READ_HEAD);
+		if (writeHead - readHead >= RING_CAPACITY) return;
+
+		const slot = (writeHead % RING_CAPACITY) * EVENT_FIELDS;
+		ring[slot] = cmd;
+		ring[slot + 1] = noteIdx;
+		ringF32[slot + 2] = vol;
+		ring[slot + 3] = delayFrames;
+		ring[slot + 4] = partHash;
+		Atomics.store(ctrl, CTRL_WRITE_HEAD, writeHead + 1);
 	}
 
 	setVolume(vol: number): void {
 		super.setVolume(vol);
 		if (this.masterGain) this.masterGain.gain.value = vol;
+		if (this.useSAB && this.ctrlF32) {
+			this.ctrlF32[CTRL_VOLUME_F32] = vol;
+		} else if (this.ready) {
+			this.node.port.postMessage({ cmd: 'param', key: 'volume', value: vol });
+		}
 	}
 
 	resume(): void {
 		this.paused = false;
 		this.context.resume();
+	}
+
+	setSynthEnabled(enabled: boolean): void {
+		if (this.useSAB && this.ctrl) {
+			Atomics.store(this.ctrl, CTRL_SYNTH_ENABLED, enabled ? 1 : 0);
+		} else if (this.ready) {
+			this.node.port.postMessage({ cmd: 'param', key: 'synthEnabled', value: enabled ? 1 : 0 });
+		}
+	}
+
+	setSynthParams(type: number, attack: number, decay: number, sustain: number, release: number): void {
+		if (this.useSAB && this.ctrl && this.ctrlF32) {
+			Atomics.store(this.ctrl, CTRL_SYNTH_TYPE, type);
+			this.ctrlF32[CTRL_SYNTH_ATTACK_F32] = attack;
+			this.ctrlF32[CTRL_SYNTH_DECAY_F32] = decay;
+			this.ctrlF32[CTRL_SYNTH_SUSTAIN_F32] = sustain;
+			this.ctrlF32[CTRL_SYNTH_RELEASE_F32] = release;
+		} else if (this.ready) {
+			this.node.port.postMessage({ cmd: 'synthParams', type, attack, decay, sustain, release });
+		}
 	}
 }

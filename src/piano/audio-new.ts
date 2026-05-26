@@ -1,3 +1,5 @@
+// <experimental audio engine>
+//
 import { Notification } from '../libs/Notification';
 import {
 	SAB_BYTES, CTRL_BYTES, RING_CAPACITY, EVENT_FIELDS,

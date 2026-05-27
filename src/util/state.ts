@@ -4,14 +4,13 @@ import type { CanvasRenderer } from '../piano/renderer';
 import type { PianoKey } from '../piano/piano';
 import { SoundSelector } from '../libs/SoundSelector';
 
-import * as audio from '../piano/audio';
-import * as audioNew from '../piano/audio-new';
+import {AudioEngineWeb} from '../piano/audio';
 
 export interface Piano {
 	rootElement: HTMLElement;
 	keys: Record<string, PianoKey>;
 	renderer: CanvasRenderer;
-	audio: audio.AudioEngineWeb | audioNew.AudioEngineWeb;
+	audio: AudioEngineWeb;
 	play(
 		note: string,
 		vol: number,

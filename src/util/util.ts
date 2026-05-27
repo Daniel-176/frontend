@@ -6,32 +6,39 @@ function getNaturalDisplay(el: HTMLElement): string {
 	return display === 'none' ? 'block' : display;
 }
 
+const animations = new WeakMap<HTMLElement, Animation>();
+
 export function fadeIn(
 	el: HTMLElement | undefined | null,
 	ms: number,
 	cb?: () => void,
 ): void {
 	if (!el) return;
-	if ((el as any).__fadeOutTimer) {
-		clearTimeout((el as any).__fadeOutTimer);
-		(el as any).__fadeOutTimer = null;
-	}
-	const isHidden =
+
+	animations.get(el)?.cancel();
+
+	const hidden =
 		el.style.display === 'none' || getComputedStyle(el).display === 'none';
-	el.style.opacity = '0';
-	el.style.display = isHidden
-		? getNaturalDisplay(el)
-		: getComputedStyle(el).display;
-	el.style.transition = `opacity ${ms}ms`;
-	requestAnimationFrame(() => {
-		requestAnimationFrame(() => {
-			el.style.opacity = '1';
-		});
+
+	if (hidden) el.style.display = getNaturalDisplay(el);
+
+	const anim = el.animate([{ opacity: '0' }, { opacity: '1' }], {
+		duration: ms,
+		fill: 'forwards',
+		easing: 'ease',
 	});
-	setTimeout(() => {
-		el.style.transition = '';
-		cb?.();
-	}, ms);
+
+	animations.set(el, anim);
+
+	anim.finished
+		.then(() => {
+			el.style.opacity = '';
+			animations.delete(el);
+			cb?.();
+		})
+		.catch(() => {
+		  // fade currently running
+    });
 }
 
 export function fadeOut(
@@ -40,15 +47,25 @@ export function fadeOut(
 	cb?: () => void,
 ): void {
 	if (!el) return;
-	el.style.transition = `opacity ${ms}ms`;
-	el.style.opacity = '0';
-	(el as any).__fadeOutTimer = setTimeout(() => {
-		(el as any).__fadeOutTimer = null;
-		el.style.display = 'none';
-		el.style.transition = '';
-		el.style.opacity = '';
-		cb?.();
-	}, ms);
+
+	animations.get(el)?.cancel();
+
+	const anim = el.animate([{ opacity: '1' }, { opacity: '0' }], {
+		duration: ms,
+		fill: 'forwards',
+		easing: 'ease',
+	});
+
+	animations.set(el, anim);
+
+	anim.finished
+		.then(() => {
+			el.style.display = 'none';
+			el.style.opacity = '';
+			animations.delete(el);
+			cb?.();
+		})
+		.catch(() => {});
 }
 
 export class EventEmitter {

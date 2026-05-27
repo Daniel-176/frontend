@@ -10,10 +10,9 @@
     "typescript": "^5.4.0"
   },
   "scripts": {
-    "build": "bun run build:main && bun run build:worklet",
+    "build": "bun run build:main",
     "build:main": "bun build src/main.ts --outfile=client/script.js --outdir=client/ --entry-naming=[dir]/script.[ext] --sourcemap=linked --format=iife --target=browser",
-    "build:worklet": "bun build src/piano/piano-worklet-processor.ts --outfile=client/piano-worklet-processor.js --format=esm --target=browser",
-    "build:min": "bun run build:main -- --minify && bun run build:worklet -- --minify",
+    "build:min": "bun run build:main -- --minify",
     "typecheck": "tsc --project tsconfig.json"
   },
   "dependencies": {

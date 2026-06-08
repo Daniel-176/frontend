@@ -487,12 +487,14 @@ This is sent to ban a user from the channel.
 #### Properties
 - `"_id"`: The user id to ban (string).
 - `"ms"`: The amount of milliseconds to ban the user for. Between 0 and 3600000.
+- `?"noAnnounce"`: Disables chat message annoucement when set to true. Used for room keeper bots.
 #### Example
 ```json
 {
   "m":"kickban",
   "_id":"a4ea42f1d9770e671f938e8c",
-  "ms":300000
+  "ms":300000,
+  "noAnnounce":true
 }
 ```
 

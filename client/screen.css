@@ -148,6 +148,29 @@ table {
   font-size: 8px;
 }
 
+.name-preview {
+    font-size: 12px;
+    padding: 4px;
+    margin: auto;
+    border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    min-width: 50px;
+    width: fit-content;
+    text-align: center;
+    cursor: pointer;
+    min-height: 15px;
+    line-height: 15px;
+}
+
+.name-preview::after {
+    content: "Preview";
+    position: absolute;
+    top: 1px;
+    font-size: 10px;
+    left: 45%;
+}
+
 .nametag {
   float: left;
   position: relative;
@@ -966,6 +989,23 @@ input[type="range"]:hover {
   box-shadow: 0 0 8px #000;
   -webkit-box-shadow: 0 0 8px #000;
   -moz-box-shadow: 0 0 8px #000;
+}
+
+.dialog#rename {
+    height: 113px;
+}
+
+.rename-random,
+.rename-hex {
+    background: #333;
+    color: white;
+    border: 1px solid #fff;
+    border-radius: 2px;
+}
+
+.rename-hex.wrong {
+    border: 1px solid #fff;
+    color: red;
 }
 
 .dialog p {

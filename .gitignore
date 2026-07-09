@@ -132,3 +132,7 @@ script.js
 script.js.map
 originalCode.js
 piano-worklet-processor.js
+
+# build output
+client/script.js
+client/script.js.map

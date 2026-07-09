@@ -992,7 +992,8 @@ input[type="range"]:hover {
 }
 
 .dialog#rename {
-    height: 113px;
+    height: 120px;
+    width: 440px;
 }
 
 .rename-random,

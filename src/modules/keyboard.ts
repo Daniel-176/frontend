@@ -727,6 +727,47 @@ export function initKeyboard(): void {
 							'#rename input[name=color]',
 						) as HTMLInputElement
 					).value = gClient.ppl[gClient.participantId!].color;
+
+					gClient.user = gClient.ppl[gClient.participantId!];
+
+					// Update name preview.
+					(
+						document.querySelector('#namediv-preview .nametext') as HTMLElement
+					).innerText = gClient.user.name;
+					(
+						document.querySelector('#namediv-preview') as HTMLElement
+					).style.backgroundColor = gClient.user.color;
+					(
+						document.querySelector('#rename .rename-hex') as HTMLInputElement
+					).value = gClient.user.color;
+
+					// Update name preview tag
+					if (gClient.user.tag) {
+						switch (typeof gClient.user.tag) {
+							case 'object':
+								(document.querySelector('#namediv-preview .nametag') as HTMLElement).innerText = gClient.user.tag.text;
+								(document.querySelector('#namediv-preview .nametag') as HTMLElement).style.backgroundColor = gClient.user.tag.color;
+								break;
+							case 'string':
+								function tagColor(tag: any): string {
+									if (typeof tag === 'object') return tag.color;
+									if (tag === 'BOT') return '#55f';
+									if (tag === 'OWNER') return '#a00';
+									if (tag === 'ADMIN') return '#f55';
+									if (tag === 'MOD') return '#0a0';
+									if (tag === 'MEDIA') return '#f5f';
+									return '#777';
+								}
+								(document.querySelector('#namediv-preview .nametag') as HTMLElement).innerText = gClient.user.tag;
+								(document.querySelector('#namediv-preview .nametag') as HTMLElement).style.backgroundColor = tagColor(gClient.user.tag);
+								break;
+							case 'undefined':
+								(document.querySelector('#namediv-preview .nametag') as HTMLElement).style.display = 'none';
+								break;
+						}
+					} else {
+						(document.querySelector('#namediv-preview .nametag') as HTMLElement).style.display = 'none';
+					}
 				}, 100);
 			} else if (id) {
 				const part = gClient.ppl[id] || null;

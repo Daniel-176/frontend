@@ -181,9 +181,19 @@
         <p><label>Player limit: &nbsp;<input type="text" name="limit" maxlength="2" value="50"></label></p>
         <button class="submit">APPLY</button>
       </div>
-      <div id="rename" class="dialog">
-        <p><input type="text" name="name" placeholder="My Fancy New Name" maxlength="40" class="text" />
+      <div id="rename" class="dialog" style="height: 160px;">
+        <div style="display: block; background-color: #abcdef;" id="namediv-preview" class="name-preview"
+          title="This is an authorized bot." translated="">
+          <div class="nametag" style="background-color: rgb(85, 85, 255);" id="nametag-preview">BOT</div>
+          <div class="nametext" id="nametext-preview" style="float: left;">aeiou</div>
+        </div>
+        <p>
+          <input type="text" name="name" placeholder="My Fancy New Name" maxlength="40" class="text"
+            style="font-size: 25px; height: 25px;" />
           <input type="color" name="color" placeholder="" maxlength="7" class="color" />
+          <hr>
+          <button id="rename-random-color" class="rename-random">Random Color</button>
+          <input type="text" name="hexColor" placeholder="#abcdef" class="rename-hex">
         </p>
         <button class="submit">USER SET</button>
       </div>

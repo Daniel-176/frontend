@@ -6,9 +6,9 @@ import { settings } from "./settings/settings";
 import { i18next } from "util/translations";
 
 export function initModals() {
-  const gClient = getClient();
+	const gClient = getClient();
 
-  (() => {
+	(() => {
 		function submit() {
 			const msg: any = { m: 'siteban' };
 			msg.id = (
@@ -192,7 +192,7 @@ export function initModals() {
 					),
 				);
 			});
-  })();
+	})();
 
 	// New room dialog
 	(() => {
@@ -263,6 +263,27 @@ export function initModals() {
 			closeModal();
 			gClient.sendArray([{ m: 'userset', set }]);
 		}
+		document.querySelector('#rename input[name=name]').addEventListener('input', () => {
+			// User Name
+			(
+				document.querySelector('#rename .nametext') as HTMLElement
+			).innerText = (
+				document.querySelector('#rename input[name=name]') as HTMLInputElement
+			).value;
+
+			// User Color
+			(
+				document.querySelector('#namediv-preview .nametext') as HTMLElement
+			).style.backgroundColor = (
+				document.querySelector('#rename input[name=color]') as HTMLInputElement
+			).value;
+		});
+		document.querySelector('#rename #rename-random-color').addEventListener('click', () => {
+			
+		})
+		document.querySelector('#rename .rename-hex').addEventListener('input', () => {
+			
+		})
 		document.querySelector('#rename .submit')!.addEventListener('click', () => {
 			submit();
 		});
@@ -276,7 +297,7 @@ export function initModals() {
 				evt.stopPropagation();
 				return false;
 			});
-  })();
+	})();
 
 
 
@@ -333,7 +354,7 @@ export function initModals() {
 			}
 		});
 
-  // Modal background click
+	// Modal background click
 	const modal_bg = document.querySelector('#modal .bg') as HTMLElement;
 	modal_bg.addEventListener('click', (evt: any) => {
 		if (evt.target !== modal_bg) return;

@@ -522,6 +522,13 @@ export function initKeyboard(): void {
 			createMenuItem(i18next.t('Mute Chat'), () => {
 				settings.chatMutes.push(part._id);
 				if (localStorage) localStorage.chatMutes = settings.chatMutes.join(',');
+				try {
+					(Array.from(document.querySelectorAll("#chat li")) as HTMLLIElement[])
+						.filter(msg => msg.getAttribute("user-id") === part._id)
+						.forEach(msg => msg.style.display = "none");
+				} catch (error) {
+					console.log("couldn't remove muted user's messages");
+				}
 				part.nameDiv?.classList.add('muted-chat');
 			});
 		} else {
@@ -530,6 +537,13 @@ export function initKeyboard(): void {
 				while ((i = settings.chatMutes.indexOf(part._id)) != -1)
 					settings.chatMutes.splice(i, 1);
 				if (localStorage) localStorage.chatMutes = settings.chatMutes.join(',');
+				try {
+					(Array.from(document.querySelectorAll("#chat li")) as HTMLLIElement[])
+						.filter(msg => msg.getAttribute("user-id") === part._id)
+						.forEach(msg => msg.style.display = "block");
+				} catch (error) {
+					console.log("couldn't remove muted user's messages");
+				}
 				part.nameDiv?.classList.remove('muted-chat');
 			});
 		}

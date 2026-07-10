@@ -41,8 +41,35 @@ export interface Chat {
 	clear(): void;
 	scrollToBottom(): void;
 	blur(): void;
+	refreshChatColors(): void;
 	send(message: string): void;
 	receive(msg: any): void;
+}
+
+function getHexBrightness(hex) {
+  // Remove the hash symbol if present
+  let cleanHex = hex.replace('#', '');
+  
+  // Expand shorthand hex codes (e.g. "F00" to "FF0000")
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(char => char + char).join('');
+  }
+  
+  // Extract RGB components
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  
+  // Calculate brightness using the YIQ formula
+  return ((r * 299) + (g * 587) + (b * 114)) / 1000;
+}
+
+const isBright = (hex) => getHexBrightness(hex) > 128; 
+let isBackgroundBright = () => {
+	let backgroundColor1 = document.body.style.getPropertyValue('--color');
+	let backgroundColor2 = document.body.style.getPropertyValue('--color2');
+
+	return isBright(backgroundColor1) || isBright(backgroundColor2);
 }
 
 export function initChat(): Chat {
@@ -151,6 +178,46 @@ export function initChat(): Chat {
 				document.getElementById('chat')!.classList.remove('chatting');
 				chat.scrollToBottom();
 				captureKb();
+			}
+		},
+
+		refreshChatColors(): void {
+			const bgBright = isBackgroundBright();
+			for (const msg of messageCache) {
+				const li = document.getElementById('msg-' + msg.id);
+				if (!li) continue;
+
+				const msgEl = li.querySelector('.message') as HTMLElement | null;
+				const nameEl = li.querySelector('.name') as HTMLElement | null;
+				const name2El = li.querySelector('.name2') as HTMLElement | null;
+
+				if (msg.m === 'dm') {
+					if (settings.noChatColors) {
+						const c = bgBright ? '#000000' : '#ffffff';
+						if (msgEl) msgEl.style.color = c;
+						if (nameEl) nameEl.style.color = c;
+						if (name2El) name2El.style.color = c;
+					} else {
+						if (msgEl) msgEl.style.color = msg.sender.color || 'white';
+						if (msg.sender._id === gClient.user!._id) {
+							if (nameEl) nameEl.style.color = msg.recipient.color || 'white';
+						} else if (msg.recipient._id === gClient.user!._id) {
+							if (nameEl) nameEl.style.color = msg.sender.color || 'white';
+						} else {
+							if (nameEl) nameEl.style.color = msg.sender.color || 'white';
+							if (name2El) name2El.style.color = msg.recipient.color || 'white';
+						}
+					}
+				} else {
+					if (settings.noChatColors) {
+						const c = bgBright ? '#000000' : '#ffffff';
+						if (msgEl) msgEl.style.color = c;
+						if (nameEl) nameEl.style.color = c;
+					} else {
+						if (msgEl) msgEl.style.color = msg.p.color || 'white';
+						if (nameEl) nameEl.style.color = msg.p.color || 'white';
+					}
+				}
 			}
 		},
 

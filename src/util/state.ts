@@ -40,6 +40,7 @@ export interface Chat {
 	clear(): void;
 	scrollToBottom(): void;
 	blur(): void;
+	refreshChatColors(): void;
 	send(message: string): void;
 	receive(msg: Record<string, unknown>): void;
 }

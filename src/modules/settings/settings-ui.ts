@@ -1,5 +1,5 @@
 import { Notification } from '../../libs/Notification';
-import { getClient } from '../../util/state';
+import { getClient, state } from '../../util/state';
 import { settings } from './settings';
 import { openModal, closeModal } from '../../util/modal';
 import { BASIC_PIANO_SCALES } from '../../util/constants';
@@ -71,6 +71,7 @@ export function initSettingsUI(): void {
 					setting.classList.toggle('enabled');
 					localStorage.noChatColors = setting.classList.contains('enabled');
 					settings.noChatColors = setting.classList.contains('enabled');
+					state.chat?.refreshChatColors();
 				};
 				html.appendChild(setting);
 			})();
@@ -383,6 +384,7 @@ export function initSettingsUI(): void {
 						() => {
 							settings.noChatColors = !settings.noChatColors;
 							localStorage.noChatColors = settings.noChatColors;
+							state.chat?.refreshChatColors();
 						},
 					);
 

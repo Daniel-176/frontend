@@ -1,5 +1,5 @@
 import { Color } from '../libs/Color';
-import { getClient } from '../util/state';
+import { getClient, state } from '../util/state';
 import { settings } from './settings/settings';
 
 const DEFAULT_COLOR = '#220022';
@@ -14,6 +14,7 @@ export function setBackgroundColor(hex: string, hex2?: string): void {
 	document.body.style.setProperty('--color2', color2.toHexa());
 	bottom.style.setProperty('--color', color1.toHexa());
 	bottom.style.setProperty('--color2', color2.toHexa());
+	state.chat?.refreshChatColors();
 }
 
 export function setBackgroundColorToDefault(): void {

@@ -526,7 +526,7 @@ export function initKeyboard(): void {
                         .filter(msg => msg.getAttribute("user-id") === part._id)
                         .forEach(msg => msg.style.display = "none");
                 } catch (error) {
-                    console.log("couldn't hide muted user's messages");
+                    console.error("couldn't hide muted user's messages: " + error);
                 }
 
 				settings.chatMutes.push(part._id);
@@ -541,7 +541,7 @@ export function initKeyboard(): void {
                         .filter(msg => msg.getAttribute("user-id") === part._id)
                         .forEach(msg => msg.style.display = "block");
                 } catch (error) {
-                    console.log("couldn't show muted user's messages");
+                    console.log("couldn't show muted user's messages: " + error);
                 }
 
 				let i: number;
@@ -567,7 +567,7 @@ export function initKeyboard(): void {
                         .filter(msg => msg.getAttribute("user-id") === part._id)
                         .forEach(msg => msg.style.display = "none");
                 } catch (error) {
-                    console.log("couldn't remove muted user's messages");
+                    console.error("couldn't remove muted user's messages:" + error);
                 }
 
 				settings.chatMutes.push(part._id);
@@ -596,7 +596,7 @@ export function initKeyboard(): void {
                         .filter(msg => msg.getAttribute("user-id") === part._id)
                         .forEach(msg => msg.style.display = "block");
                 } catch (error) {
-                    console.log("couldn't remove muted user's messages");
+                    console.error("couldn't remove muted user's messages: " + error);
                 }
 
 				part.nameDiv?.classList.remove('muted-notes');
